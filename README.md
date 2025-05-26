@@ -1,5 +1,41 @@
-Aplikacja fpl_stats służy do analizy i generowania raportów statystycznych na podstawie danych z Fantasy Premier League.
-Pozwala na przetwarzanie wyników menedżerów, tworzenie podsumowań sezonu, wizualizację statystyk oraz wyłanianie zwycięzców w różnych kategoriach.
-Wyniki prezentowane są w formie czytelnych raportów PDF oraz wykresów.
+# fpl_stats
 
-Wybieramy Steczka Roku.
+**fpl_stats** is an application for analyzing and generating statistical reports based on Fantasy Premier League data.  
+It allows you to process manager results, create season summaries, visualize statistics, and select winners in various categories.  
+The results are presented as clear PDF reports and charts.
+
+## Features
+
+- Aggregation and analysis of FPL manager statistics
+- Automatic generation of season summary reports (PDF)
+- Visualization of key statistics (matplotlib, seaborn)
+- Awards for best and worst performances in various categories
+- Player name normalization and mapping
+
+## Technologies Used
+
+- **Python 3**
+- **pandas** – data processing and analysis
+- **matplotlib** & **seaborn** – data visualization
+- **json** – reading and writing player data
+- **unicodedata** & **re** – player name normalization
+- **matplotlib.backends.backend_pdf.PdfPages** – PDF report generation
+
+## How to Use
+
+1. Create your own `.env` file in the project root directory.  
+   Add your session cookie from [https://fantasy.premierleague.com/api/me](https://fantasy.premierleague.com/api/me) and your league ID, for example:
+   ```
+   FPL_COOKIE=your_fpl_cookie_here
+   LEAGUE_ID=your_league_id_here
+   ```
+2. Run the main script to generate reports:
+   ```bash
+   python fpl_generate_report_v3.py
+   ```
+3. The output PDF and charts will be saved in the `fpl_output/` directory.
+
+---
+
+**Wybieramy Steczka Roku!**  
+Let the best manager win!
