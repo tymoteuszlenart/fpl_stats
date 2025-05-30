@@ -6,13 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
-LEAGUE_ID = os.getenv("LEAGUE_ID")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Cookie": COOKIE
 }
 
+LEAGUE_ID = 600467
 NUM_GW = 38
 output_file = "csv/fpl_season_data.csv"
 os.makedirs("csv", exist_ok=True)
@@ -38,13 +38,16 @@ def get_manager_data(entry_id, gw):
     live = requests.get(live_url, headers=HEADERS).json()
 
     picks_data = picks.get("picks", [])
+    team = [p["element"] for p in picks_data]
     history = picks.get("entry_history", {})
+    automatic_subs = picks.get("automatic_subs", [])
+    chip = picks.get("active_chip", None)
+
     captain_id = next((p["element"] for p in picks_data if p["is_captain"]), None)
     captain_points = next((e["stats"]["total_points"] for e in live["elements"] if e["id"] == captain_id), 0)
 
-    transfers = picks.get("automatic_subs", [])
-    in_ids = [t["element_in"] for t in transfers]
-    out_ids = [t["element_out"] for t in transfers]
+    in_ids = [t["element_in"] for t in automatic_subs]
+    out_ids = [t["element_out"] for t in automatic_subs]
 
     transfer_gain = 0
     for in_id, out_id in zip(in_ids, out_ids):
@@ -55,8 +58,12 @@ def get_manager_data(entry_id, gw):
     return {
         "gw": gw,
         "points": history.get("points"),
+        "team": team,
         "bench": history.get("points_on_bench"),
         "hits": history.get("event_transfers_cost"),
+        "event_transfers": history.get("event_transfers"),
+        "chip": chip,
+        "autosub_count": len(automatic_subs),
         "captain_id": captain_id,
         "captain_points": captain_points,
         "transfer_in_ids": in_ids,
@@ -71,15 +78,19 @@ def main():
     for member in league:
         entry_id = member["entry"]
         name = member["player_name"]
-        print(f"Pobieram dane gracza: {name}")
+        entry_name = member["entry_name"]
+        print(f"Pobieram dane drużyny: {entry_name}")
         for gw in range(1, NUM_GW + 1):
             try:
                 data = get_manager_data(entry_id, gw)
-                data.update({"player_name": name})
+                data.update({
+                    "player_name": name,
+                    "entry_name": entry_name
+                })
                 all_data.append(data)
                 time.sleep(0.3)
-            except:
-                print(f"Błąd: {name} GW{gw}")
+            except Exception as e:
+                print(f"❌ Błąd podczas pobierania danych dla {entry_name} GW{gw}: {e}")
                 continue
 
     pd.DataFrame(all_data).to_csv(output_file, index=False)
