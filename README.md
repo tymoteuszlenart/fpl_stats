@@ -23,17 +23,24 @@ The results are presented as clear PDF reports and charts.
 
 ## How to Use
 
-1. Create your own `.env` file in the project root directory.  
+1. **Install dependencies**  
+   Make sure you have Python 3 installed.  
+   Install all required libraries using pip:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Create your own `.env` file in the project root directory.  
    Add your session cookie from [https://fantasy.premierleague.com/api/me](https://fantasy.premierleague.com/api/me) and your league ID, for example:
    ```
    FPL_COOKIE=your_fpl_cookie_here
    LEAGUE_ID=your_league_id_here
    ```
-2. Run the main script to generate reports:
+3. Run the main script to generate reports:
    ```bash
    python fpl_generate_report_v3.py
    ```
-3. The output PDF and charts will be saved in the `fpl_output/` directory.
+4. The output PDF will be saved in the `fpl_output/` directory.
 
 ---
 
