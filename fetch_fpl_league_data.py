@@ -6,13 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
+LEAGUE_ID = os.getenv("FPL_LEAGUE_ID")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Cookie": COOKIE
 }
 
-LEAGUE_ID = 600467
 NUM_GW = 38
 output_file = "csv/fpl_season_data.csv"
 os.makedirs("csv", exist_ok=True)
