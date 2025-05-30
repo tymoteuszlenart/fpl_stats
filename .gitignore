@@ -1,4 +1,5 @@
 test
 .env
-csv
-fpl_output
+.csv
+.pdf
+venv
