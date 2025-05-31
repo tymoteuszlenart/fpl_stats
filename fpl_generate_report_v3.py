@@ -6,6 +6,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import os
 from collections import Counter
 from ast import literal_eval
+from weasyprint import HTML
 
 # Reading the CSV file
 print("🔄 Ładowanie danych z pliku csv/fpl_season_data.csv...")
@@ -266,28 +267,68 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     pdf.savefig()
     plt.close()
 
-    # Ligowe Steczki – awards
+    # Awards section
+    print(" 🔄 Generowanie sekcji nagród...")
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background: #f8f7f4;
+                padding: 40px;
+                color: #333;
+            }
+            .award {
+                border: 3px solid #d4af37;
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 30px;
+                background: #fff;
+            }
+            .title {
+                font-size: 24px;
+                font-weight: bold;
+                color: #c59d00;
+            }
+            .label {
+                font-size: 16px;
+                margin: 10px 0;
+            }
+            @media print {
+                .page-break {
+                    page-break-after: always;
+                }
+            }
+        </style>
+    </head>
+    <body>
+    <h1 style="text-align:center">🏆 Ligowe Steczki</h1>
+    """
+
     for award in awards:
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.axis("off")
-        ax.set_facecolor("#f9f7f0")  # jasne tło
+        html += f"""
+        <div class="award">
+            <div class="title">🏆 {award['Nagroda']}</div>
+            <div class="label">👕 <strong>Drużyna:</strong> {award['Drużyna']}</div>
+            <div class="label">🎯 <strong>Za co:</strong> {award['Za co']}</div>
+            <div class="label">📊 <strong>Wartość:</strong> {award['Wartość']}</div>
+        </div>
+        <div class="page-break"></div>
+        """
 
-        # Tytuł nagrody
-        ax.text(0.5, 0.85, f"{award['Nagroda']}", fontsize=22, ha='center', weight='bold', color="#333")
+    html += "</body></html>"
 
-        # Treść
-        ax.text(0.5, 0.6, f"Drużyna: {award['Drużyna']}", fontsize=16, ha='center')
-        ax.text(0.5, 0.45, f"Za co: {award['Za co']}", fontsize=14, ha='center', wrap=True)
-        ax.text(0.5, 0.28, f"Wartość: {award['Wartość']}", fontsize=14, ha='center')
+    with open("fpl_output/awards.html", "w", encoding="utf-8") as f:
+        f.write(html)
+        print(" ✅ Sekcja nagród wygenerowana. Zapisano jako fpl_output/awards.html")
 
-        # Ramka dekoracyjna
-        rect = plt.Rectangle((0.02, 0.02), 0.96, 0.96, transform=ax.transAxes,
-                            fill=False, color="#c9a227", linewidth=4, linestyle="-")
-        ax.add_patch(rect)
-
-        plt.tight_layout()
-        pdf.savefig()
-        plt.close()
+    # Save awards.html as PDF
+    print(" 🔄 Generowanie PDF z sekcją nagród...")
+    HTML("fpl_output/awards.html").write_pdf("fpl_output/awards.pdf")
+    print(" ✅ PDF z sekcją nagród zapisany jako fpl_output/awards.pdf")
 
     # Captains choices table
     fig, ax = plt.subplots(figsize=(6, 12))
