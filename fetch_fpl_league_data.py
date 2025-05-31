@@ -39,9 +39,19 @@ def get_manager_data(entry_id, gw):
 
     picks_data = picks.get("picks", [])
     team = [p["element"] for p in picks_data]
+
     history = picks.get("entry_history", {})
     automatic_subs = picks.get("automatic_subs", [])
     chip = picks.get("active_chip", None)
+
+    if chip == "bboost":
+        bench_ids = [p["element"] for p in picks_data if p["position"] > 11]
+        element_stats = live.get("elements", [])
+        live_points = {e["id"]: e["stats"]["total_points"] for e in element_stats}
+        bench_boost_points = sum(live_points.get(e, 0) for e in bench_ids)
+        bench = bench_boost_points
+    else:
+        bench = history.get("points_on_bench")
 
     captain_id = next((p["element"] for p in picks_data if p["is_captain"]), None)
     captain_points = next((e["stats"]["total_points"] for e in live["elements"] if e["id"] == captain_id), 0)
@@ -59,7 +69,7 @@ def get_manager_data(entry_id, gw):
         "gw": gw,
         "points": history.get("points"),
         "team": team,
-        "bench": history.get("points_on_bench"),
+        "bench": bench,
         "hits": history.get("event_transfers_cost"),
         "event_transfers": history.get("event_transfers"),
         "chip": chip,
