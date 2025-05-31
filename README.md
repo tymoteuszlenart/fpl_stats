@@ -36,11 +36,18 @@ The results are presented as clear PDF reports and charts.
    FPL_COOKIE=your_fpl_cookie_here
    LEAGUE_ID=your_league_id_here
    ```
-3. Run the main script to generate reports:
+
+3. Run the main fetcher script to download data:
+   ```bash
+   python fetch_fpl_league_data.py
+   ```
+
+3. Run script to generate reports:
    ```bash
    python fpl_generate_report_v3.py
    ```
-4. The output PDF will be saved in the `fpl_output/` directory.
+
+4. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
 ---
 

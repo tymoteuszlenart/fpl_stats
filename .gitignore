@@ -3,3 +3,4 @@ test/
 *.csv
 *.pdf
 venv/
+*.html
