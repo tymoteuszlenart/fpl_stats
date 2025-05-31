@@ -17,6 +17,7 @@ except FileNotFoundError:
     exit()
 
 # Mapping player IDs to names
+print("🔄 Ładowanie danych z pliku json/player_id_mapped.json...")
 try:
     mapping = pd.read_json("json/player_id_mapped.json")
     id_to_name = dict(zip(mapping["id"], mapping["name"]))
@@ -180,6 +181,7 @@ top_captains["desc"] = (
 os.makedirs("fpl_output", exist_ok=True)
 
 # Generate PDF report
+print("🔄 Tworzenie raportu w PDF...")
 with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     sns.set(style="whitegrid")
     plt.rcParams.update({'axes.titlesize': 14})
@@ -211,9 +213,6 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
             agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
             d = agg_chip.sort_values("points", ascending=False)
             sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette='cubehelix')
-            for i, v in enumerate(d[col]):
-                if not pd.isna(v):
-                    ax.text(v + 0.5, i, f"{int(v) if title.endswith(' I') else f'{v:.1f}'}", va='center')
             plt.title(f"Wyniki graczy z chipem: {chip.upper()}")
             plt.tight_layout()
             pdf.savefig()
