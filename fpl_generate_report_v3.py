@@ -41,6 +41,7 @@ agg = df.groupby("entry_name").agg({
 }).reset_index()
 
 agg["avg_gw_points"] = df.groupby("entry_name")["points"].mean().values
+agg["avg_bench_points"] = df.groupby("entry_name")["bench"].mean().values
 agg["efficiency"] = (agg["points"] - agg["hits"]) / num_gw
 agg["transfer_loss"] = df.groupby("entry_name")["transfer_gain"].apply(lambda x: x[x < 0].sum()).reset_index(drop=True)
 agg["total_hits"] = agg["entry_name"].map(
@@ -162,7 +163,7 @@ max_row = df.loc[df["points"].idxmax()]
 bench_max = df.loc[df["bench"].idxmax()]
 add_award("Najniższy wynik w sezonie", min_row["entry_name"], f"GW{min_row['gw']}", f'{min_row["points"]} pkt')
 add_award("Najwyższy wynik w sezonie", max_row["entry_name"], f"GW{max_row['gw']}", f'{max_row["points"]} pkt')
-add_award("Najwyższy wynik ławki w sezonie", bench_max["entry_name"], f"GW{bench_max["gw"]}", f'{bench_max["bench"]} pkt')
+add_award("Najwyższy wynik ławki w sezonie", bench_max["entry_name"], f"GW{bench_max['gw']}", f'{bench_max["bench"]} pkt')
 
 # Top 30 captains choices of season
 top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
@@ -189,15 +190,25 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
 
     # Main summary table
     for col, title, palette in [
-        ("bench", "Punkty zawodników na ławce I", "rocket"),
-        ("total_hits", "Ilość hitów I", "mako"),
         ("captain_points", "Punkty kapitanów I", "flare"),
-        ("best_gw_count", "Ilość najlepszych wyników w kolejce I", "crest"),
-        ("worst_gw_count", "Ilość najgorszych wyników w kolejce I", "magma"),
         ("avg_gw_points", "Średnia punktowa", "viridis"),
         ("efficiency", "Ranking efektywności", "cividis"),
+        ("bench", "Punkty zawodników na ławce I", "rocket"),
+        ("avg_bench_points", "Średnia punktów na ławce", "plasma"),
+        ("total_hits", "Ilość hitów I", "mako"),
+        ("best_gw_count", "Ilość najlepszych wyników w kolejce I", "crest"),
+        ("worst_gw_count", "Ilość najgorszych wyników w kolejce I", "magma"),
     ]:
-        d = agg.sort_values(col, ascending=False)
+        # Filter out gameweeks with Bench Boost and recalculate bench points sum
+        if col == "bench":
+            filtered_df = df[df["chip"] != "bboost"]
+            bench_points = filtered_df.groupby("entry_name")["bench"].sum().reset_index()
+            d = bench_points.sort_values("bench", ascending=False)
+        elif col == "avg_bench_points":
+            d = df.groupby("entry_name")["bench"].mean().reset_index().rename(columns={"bench": "avg_bench_points"}).sort_values("avg_bench_points", ascending=False)
+        else:
+            d = agg.sort_values(col, ascending=False)
+
         plt.figure(figsize=(10, 6))
         ax = sns.barplot(data=d, x=col, y="entry_name", hue="entry_name", legend=False, palette=palette)
         for i, v in enumerate(d[col]):
