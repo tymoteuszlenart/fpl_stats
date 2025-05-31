@@ -27,24 +27,24 @@ except Exception as e:
     print("❌ Błąd podczas ładowania mapowania ID na nazwiska zawodników:", e)
 
 num_gw = df["gw"].nunique()
-df["has_hit"] = df["hits"] > 0
 
 # Main aggregation
 agg = df.groupby("entry_name").agg({
     "points": "sum",
     "bench": "sum",
     "hits": "sum",
-    "has_hit": "sum",
     "captain_points": "sum",
     "transfer_gain": "sum",
     "autosub_count": "sum",
     "event_transfers": "sum"
-}).rename(columns={"has_hit": "hit_count"}).reset_index()
+}).reset_index()
 
 agg["avg_gw_points"] = df.groupby("entry_name")["points"].mean().values
 agg["efficiency"] = (agg["points"] - agg["hits"]) / num_gw
 agg["transfer_loss"] = df.groupby("entry_name")["transfer_gain"].apply(lambda x: x[x < 0].sum()).reset_index(drop=True)
-agg["total_hits"] = df.groupby("entry_name")["hits"].sum().astype(int)
+agg["total_hits"] = agg["entry_name"].map(
+    df.groupby("entry_name")["hits"].sum().divide(4).astype(int)
+)
 
 # Best and worst GWs
 best = df.loc[df.groupby("gw")["points"].idxmax()].entry_name.value_counts()
@@ -70,7 +70,7 @@ add_award("Kto na kapitanie?",
           "Najwięcej punktów z kapitana",
           f'{int(agg["captain_points"].max())}')
 
-add_award("Mykolenko znów czyste konto",
+add_award("Mykolenko pierwsza asysta w życiu a ja...",
           agg.sort_values("bench", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów na ławce",
           f'{int(agg["bench"].max())}')
@@ -80,12 +80,12 @@ add_award("-4, -8 czy -12... A kto by to liczył?",
           "Najwięcej punktów z hitów -4",
           f'{int(agg["hits"].max())}')
 
-add_award("Słuchaj mam czutkę",
+add_award("Słuchaj mam czutkę!",
           agg.sort_values("transfer_gain", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów z transferów",
           f'{int(agg["transfer_gain"].max())}')
 
-add_award("WSZYSCY SĄ W TYLE",
+add_award("WSZYSCY SĄ W TYLE!!! NA CZELE",
           agg.sort_values("best_gw_count", ascending=False).iloc[0]["entry_name"],
           "Najwięcej razy najlepszy w kolejce",
           f'{int(agg["best_gw_count"].max())}')
@@ -184,7 +184,7 @@ os.makedirs("fpl_output", exist_ok=True)
 print("🔄 Tworzenie raportu w PDF...")
 with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     sns.set(style="whitegrid")
-    plt.rcParams.update({'axes.titlesize': 14})
+    plt.rcParams.update({'axes.titlesize': 16})
 
     # Main summary table
     for col, title, palette in [
@@ -207,33 +207,84 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
         pdf.savefig()
         plt.close()
 
-    for chip in ["3xc", "bboost", "freehit"]:
+    chip_names = {
+        "3xc": "Triple Captain",
+        "bboost": "Bench Boost",
+        "freehit": "Free Hit",
+        "manager": "Assistant Manager",
+        "wildcard1": "Wildcard - 1st Round",
+        "wildcard2": "Wildcard - 2nd Round"
+    }
+
+    # Chips usage
+    for chip in ["3xc", "bboost", "freehit", "manager", "wildcard1", "wildcard2"]:
         chip_df = df[df["chip"] == chip]
         if not chip_df.empty:
-            agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
+            agg_chip = chip_df.groupby("entry_name")["points"].mean().reset_index()
             d = agg_chip.sort_values("points", ascending=False)
-            sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette='cubehelix')
-            plt.title(f"Wyniki graczy z chipem: {chip.upper()}")
+            plt.figure(figsize=(10, 6))
+            ax = sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette='cubehelix')
+            for i, v in enumerate(d["points"]):
+                if not pd.isna(v):
+                    ax.text(v + 0.5, i, f"{int(v)}", va='center')
+            plt.title(f"Najskuteczniejsi gracze z chipem: {chip_names.get(chip, chip)}")
             plt.tight_layout()
             pdf.savefig()
             plt.close()
 
+    # Points distribution
+    all_managers = df["entry_name"].unique()
+    wc1_df = df[df["chip"] == "wildcard1"]
+    wc2_df = df[df["chip"] == "wildcard2"]
+
+    # Summing points for wildcards
+    wc1_points = wc1_df.groupby("entry_name")["points"].sum()
+    wc2_points = wc2_df.groupby("entry_name")["points"].sum()
+    wildcards = pd.DataFrame(index=all_managers)
+    wildcards["Wildcard 1"] = wc1_points
+    wildcards["Wildcard 2"] = wc2_points
+    wildcards = wildcards.fillna(0).astype(int)
+
+    # Plotting wildcards usage
+    plt.figure(figsize=(10, 6))
+    wildcards_sorted = wildcards.sort_values("Wildcard 1" if wildcards["Wildcard 1"].sum() > wildcards["Wildcard 2"].sum() else "Wildcard 2", ascending=False)
+    ax = wildcards_sorted.plot(kind="barh", stacked=False, ax=plt.gca(), colormap="Set2")
+    
+    # Adding text labels for wildcards
+    for i, (index, row) in enumerate(wildcards_sorted.iterrows()):
+        wc1 = row["Wildcard 1"]
+        wc2 = row["Wildcard 2"]
+        if wc1 > 0:
+            ax.text(wc1 + 1, i - 0.2, str(wc1), va='center', fontsize=9)
+        if wc2 > 0:
+            ax.text(wc2 + 1, i + 0.2, str(wc2), va='center', fontsize=9)
+    
+    plt.title("Wyniki graczy po użyciu Wildcard 1 i 2")
+    plt.xlabel("Punkty zdobyte w GW z wildcardem")
+    plt.ylabel("Drużyna")
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close()
+
     # Ligowe Steczki – awards
     for award in awards:
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(8, 5))
         ax.axis("off")
-        text = f"""
-        {award['Nagroda']}
+        ax.set_facecolor("#f9f7f0")  # jasne tło
 
-        
+        # Tytuł nagrody
+        ax.text(0.5, 0.85, f"{award['Nagroda']}", fontsize=22, ha='center', weight='bold', color="#333")
 
-        Drużyna: {award['Drużyna']}
-        
-        Za co: {award['Za co']}
-        
-        Wartość: {award['Wartość']}
-        """
-        ax.text(0.1, 0.5, text, fontsize=14, va='center', wrap=True)
+        # Treść
+        ax.text(0.5, 0.6, f"Drużyna: {award['Drużyna']}", fontsize=16, ha='center')
+        ax.text(0.5, 0.45, f"Za co: {award['Za co']}", fontsize=14, ha='center', wrap=True)
+        ax.text(0.5, 0.28, f"Wartość: {award['Wartość']}", fontsize=14, ha='center')
+
+        # Ramka dekoracyjna
+        rect = plt.Rectangle((0.02, 0.02), 0.96, 0.96, transform=ax.transAxes,
+                            fill=False, color="#c9a227", linewidth=4, linestyle="-")
+        ax.add_patch(rect)
+
         plt.tight_layout()
         pdf.savefig()
         plt.close()
