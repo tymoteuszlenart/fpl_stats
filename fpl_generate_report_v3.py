@@ -40,13 +40,15 @@ agg = df.groupby("entry_name").agg({
     "event_transfers": "sum"
 }).reset_index()
 
+# Adding additional columns
 agg["avg_gw_points"] = df.groupby("entry_name")["points"].mean().values
 agg["avg_bench_points"] = df.groupby("entry_name")["bench"].mean().values
 agg["efficiency"] = (agg["points"] - agg["hits"]) / num_gw
-agg["transfer_loss"] = df.groupby("entry_name")["transfer_gain"].apply(lambda x: x[x < 0].sum()).reset_index(drop=True)
+agg["transfer_loss"] = df.groupby("entry_name")["transfer_gain"].apply(lambda x: x[x < 0].sum())
 agg["total_hits"] = agg["entry_name"].map(
     df.groupby("entry_name")["hits"].sum().divide(4).astype(int)
 )
+agg["max_bench_points"] = df[df["chip"] != "bboost"].groupby("entry_name")["bench"].sum().values
 
 # Best and worst GWs
 best = df.loc[df.groupby("gw")["points"].idxmax()].entry_name.value_counts()
@@ -70,57 +72,57 @@ def add_award(title, team, reason, value):
 add_award("Kto na kapitanie?",
           agg.sort_values("captain_points", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów z kapitana",
-          f'{int(agg["captain_points"].max())}')
+          f'{int(agg["captain_points"].max())} pkt')
 
 add_award("Mykolenko pierwsza asysta w życiu a ja...",
-          agg.sort_values("bench", ascending=False).iloc[0]["entry_name"],
+          agg.sort_values("max_bench_points", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów na ławce",
-          f'{int(agg["bench"].max())}')
+          f'{int(agg["max_bench_points"].max())} pkt')
 
 add_award("-4, -8 czy -12... A kto by to liczył?",
           agg.sort_values("hits", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów z hitów -4",
-          f'{int(agg["hits"].max())}')
+          f'{int(agg["hits"].max())} pkt')
 
 add_award("Słuchaj mam czutkę!",
           agg.sort_values("transfer_gain", ascending=False).iloc[0]["entry_name"],
           "Najwięcej punktów z transferów",
-          f'{int(agg["transfer_gain"].max())}')
+          f'{int(agg["transfer_gain"].max())} pkt')
 
 add_award("WSZYSCY SĄ W TYLE!!! NA CZELE",
           agg.sort_values("best_gw_count", ascending=False).iloc[0]["entry_name"],
           "Najwięcej razy najlepszy w kolejce",
-          f'{int(agg["best_gw_count"].max())}')
+          f'{int(agg["best_gw_count"].max())} razy')
 
 add_award("Pierwsze sezony takie są",
           agg.sort_values("worst_gw_count", ascending=False).iloc[0]["entry_name"],
           "Najwięcej razy najgorszy w kolejce",
-          f'{int(agg["worst_gw_count"].max())}')
+          f'{int(agg["worst_gw_count"].max())} razy')
 
 add_award("Budzi się jak City",
           agg.sort_values("roznica_rund", ascending=False).iloc[0]["entry_name"],
           "Największy progres między pierwszą a drugą rundą",
-          f'{int(agg["roznica_rund"].max())}')
+          f'{int(agg["roznica_rund"].max())} pkt')
 
 add_award("Pomylił sprint z maratonem",
           agg.sort_values("roznica_rund", ascending=True).iloc[0]["entry_name"],
           "Największy regres między pierwszą a drugą rundą",
-          f'{int(agg["roznica_rund"].min())}')
+          f'{int(agg["roznica_rund"].min())} pkt')
 
 add_award("Steczek Roku",
           agg.sort_values("efficiency", ascending=False).iloc[0]["entry_name"],
           "Najwyższa efektywność",
-          f'{agg["efficiency"].max():.2f}')
+          f'{agg["efficiency"].max():.2f} pkt/gw')
 
 add_award("Jak to mówią: super sub!", 
           agg.sort_values("autosub_count", ascending=False).iloc[0]["entry_name"],
           "Najwięcej trafionych autosubów", 
-          int(agg["autosub_count"].max()))
+          f'{int(agg["autosub_count"].max())} pkt')
 
 add_award("Jeszcze jeden transferek...", 
           agg.sort_values("event_transfers", ascending=False).iloc[0]["entry_name"],
           "Najwięcej wykonanych transferów", 
-          int(agg["event_transfers"].max()))
+          f'{int(agg["event_transfers"].max())} pkt')
 
 bb = df[df["chip"] == "bboost"]
 if not bb.empty:
@@ -280,57 +282,52 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
 
     # Awards section
     print(" 🔄 Generowanie sekcji nagród...")
+
     html = """
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
-        <style>
-            body {
-                font-family: 'Arial', sans-serif;
-                background: #f8f7f4;
-                padding: 40px;
-                color: #333;
-            }
-            .award {
-                border: 3px solid #d4af37;
-                border-radius: 12px;
-                padding: 24px;
-                margin-bottom: 30px;
-                background: #fff;
-            }
-            .title {
-                font-size: 24px;
-                font-weight: bold;
-                color: #c59d00;
-            }
-            .label {
-                font-size: 16px;
-                margin: 10px 0;
-            }
-            @media print {
-                .page-break {
-                    page-break-after: always;
-                }
-            }
-        </style>
+        <link rel="stylesheet" href="../css/style.css" />
+        <title>Ligowe Steczki - Podsumowanie Sezonu</title>
     </head>
     <body>
-    <h1 style="text-align:center">🏆 Ligowe Steczki</h1>
+    <div class="cover">
+        <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
+        <h1>Ligowe Steczki</h1>
+        <h2>Uroczyste Rozdanie Nagród</h2>
+        <div class="season">Sezon 2023/2024</div>
+    </div>
+    <div class="page-break"></div>
     """
 
     for award in awards:
         html += f"""
         <div class="award">
-            <div class="title">🏆 {award['Nagroda']}</div>
-            <div class="label">👕 <strong>Drużyna:</strong> {award['Drużyna']}</div>
-            <div class="label">🎯 <strong>Za co:</strong> {award['Za co']}</div>
-            <div class="label">📊 <strong>Wartość:</strong> {award['Wartość']}</div>
+            <div class="title">
+                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
+                {award['Nagroda']}
+            </div>
+            <div class="label">
+                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/t-shirt_1f455.png" alt="shirt">
+                <strong>Drużyna:</strong> {award['Drużyna']}
+            </div>
+            <div class="label">
+                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/direct-hit_1f3af.png" alt="target">
+                <strong>Za co:</strong> {award['Za co']}
+            </div>
+            <div class="label">
+                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/bar-chart_1f4ca.png" alt="chart">
+                <strong>Wartość:</strong> {award['Wartość']}
+            </div>
+            <img class="seal" src="../img/seal.png">
+            <div class="signature">Komisja Ligi Steczki</div>
+            <div class="footer">Sezon 2024/2025</div>
         </div>
-        <div class="page-break"></div>
         """
 
     html += "</body></html>"
+
 
     with open("fpl_output/awards.html", "w", encoding="utf-8") as f:
         f.write(html)
