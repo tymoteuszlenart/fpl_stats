@@ -38,7 +38,17 @@ def get_manager_data(entry_id, gw):
     live = requests.get(live_url, headers=HEADERS).json()
 
     picks_data = picks.get("picks", [])
-    team = [p["element"] for p in picks_data]
+    team = [{"player_id":p["element"], "multiplier":p["multiplier"]} for p in picks_data]
+    live_points = {e["id"]: e["stats"]["total_points"] for e in live["elements"]}
+
+    team_with_points = []
+    for player in team:
+        pid = player["player_id"]
+        team_with_points.append({
+            "player_id": pid,
+            "multiplier": player["multiplier"],
+            "points": live_points.get(pid, 0)
+        })
 
     history = picks.get("entry_history", {})
     automatic_subs = picks.get("automatic_subs", [])
@@ -68,7 +78,7 @@ def get_manager_data(entry_id, gw):
     return {
         "gw": gw,
         "points": history.get("points"),
-        "team": team,
+        "team": team_with_points,
         "bench": bench,
         "hits": history.get("event_transfers_cost"),
         "event_transfers": history.get("event_transfers"),
@@ -97,6 +107,8 @@ def main():
                     "player_name": name,
                     "entry_name": entry_name
                 })
+                if data["chip"] == "wildcard":
+                    data.update({"chip": "wildcard1"}) if data["gw"] < 20 else data.update({"chip": "wildcard2"})
                 all_data.append(data)
                 time.sleep(0.3)
             except Exception as e:

@@ -151,9 +151,11 @@ if not fh.empty:
 
 df["team_list"] = df["team"].dropna().apply(literal_eval)
 all_picked = df["team_list"].explode()
-top_player_id = all_picked.value_counts().idxmax()
+picked_starting = all_picked[all_picked.apply(lambda p: p["multiplier"] > 0 if isinstance(p, dict) else False)]
+counts = Counter([p["player_id"] for p in picked_starting])
+top_player_id, top_count = counts.most_common(1)[0]
 top_player_name = id_to_name.get(top_player_id, str(top_player_id))
-top_count = all_picked.value_counts().max()
+
 add_award("Bez niego ani rusz", 
           top_player_name, 
           "Najczęściej wybierany zawodnik (11 podstawowych)", 
@@ -180,6 +182,17 @@ top_captains["desc"] = (
     top_captains["captain_points"].astype(int).astype(str) + " pkt - " +
     "GW" + top_captains["gw"].astype(str)    
 )
+
+manager_df = df[df["chip"] == "manager"].copy()
+manager_df["team_list"] = manager_df["team"].dropna().apply(literal_eval)
+
+def extract_manager_points(team_list):
+    if isinstance(team_list, list) and len(team_list) > 0:
+        last_player = team_list[-1]
+        return last_player.get("points", 0)
+    return 0
+
+manager_df["manager_points"] = manager_df["team_list"].apply(extract_manager_points)
 
 # Create output directory if it doesn't exist
 os.makedirs("fpl_output", exist_ok=True)
@@ -234,7 +247,10 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     for chip in ["3xc", "bboost", "freehit", "manager", "wildcard1", "wildcard2"]:
         chip_df = df[df["chip"] == chip]
         if not chip_df.empty:
-            agg_chip = chip_df.groupby("entry_name")["points"].mean().reset_index()
+            if chip == "manager":
+                agg_chip = manager_df.groupby("entry_name")["manager_points"].sum().reset_index().rename(columns={"manager_points": "points"}).sort_values("points", ascending=False)
+            else:
+                agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
             d = agg_chip.sort_values("points", ascending=False)
             plt.figure(figsize=(10, 6))
             ax = sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette='cubehelix')
@@ -248,13 +264,10 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
 
     # Points distribution
     all_managers = df["entry_name"].unique()
-    wildcards = df[df["chip"] == "wildcard"].copy()
-    wildcards["chip_type"] = wildcards["gw"].apply(lambda gw: "wildcard1" if gw < 20 else "wildcard2")
-    print(wildcards[["entry_name", "gw", "chip_type", "points"]].values)
 
     # Summing points for wildcards
-    wc1_df = wildcards[wildcards["chip_type"] == "wildcard1"]
-    wc2_df = wildcards[wildcards["chip_type"] == "wildcard2"]
+    wc1_df = df[df["chip"] == "wildcard1"]
+    wc2_df = df[df["chip"] == "wildcard2"]
     wc1_points = wc1_df.groupby("entry_name")["points"].sum()
     wc2_points = wc2_df.groupby("entry_name")["points"].sum()
     wildcards_points = pd.DataFrame(index=all_managers)
