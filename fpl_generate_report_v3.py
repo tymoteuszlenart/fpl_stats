@@ -248,20 +248,24 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
 
     # Points distribution
     all_managers = df["entry_name"].unique()
-    wc1_df = df[df["chip"] == "wildcard1"]
-    wc2_df = df[df["chip"] == "wildcard2"]
+    wildcards = df[df["chip"] == "wildcard"].copy()
+    wildcards["chip_type"] = wildcards["gw"].apply(lambda gw: "wildcard1" if gw < 20 else "wildcard2")
+    print(wildcards[["entry_name", "gw", "chip_type", "points"]].values)
 
     # Summing points for wildcards
+    wc1_df = wildcards[wildcards["chip_type"] == "wildcard1"]
+    wc2_df = wildcards[wildcards["chip_type"] == "wildcard2"]
     wc1_points = wc1_df.groupby("entry_name")["points"].sum()
     wc2_points = wc2_df.groupby("entry_name")["points"].sum()
-    wildcards = pd.DataFrame(index=all_managers)
-    wildcards["Wildcard 1"] = wc1_points
-    wildcards["Wildcard 2"] = wc2_points
-    wildcards = wildcards.fillna(0).astype(int)
+    wildcards_points = pd.DataFrame(index=all_managers)
+    wildcards_points["Wildcard 1"] = wc1_points
+    wildcards_points["Wildcard 2"] = wc2_points
+    wildcards_points = wildcards_points.fillna(0).astype(int)
 
     # Plotting wildcards usage
     plt.figure(figsize=(10, 6))
-    wildcards_sorted = wildcards.sort_values("Wildcard 1" if wildcards["Wildcard 1"].sum() > wildcards["Wildcard 2"].sum() else "Wildcard 2", ascending=False)
+    sort_col = "Wildcard 1" if wildcards_points["Wildcard 1"].sum() > wildcards_points["Wildcard 2"].sum() else "Wildcard 2"
+    wildcards_sorted = wildcards_points.sort_values(sort_col, ascending=False)
     ax = wildcards_sorted.plot(kind="barh", stacked=False, ax=plt.gca(), colormap="Set2")
     
     # Adding text labels for wildcards
@@ -274,8 +278,6 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
             ax.text(wc2 + 1, i + 0.2, str(wc2), va='center', fontsize=9)
     
     plt.title("Wyniki graczy po użyciu Wildcard 1 i 2")
-    plt.xlabel("Punkty zdobyte w GW z wildcardem")
-    plt.ylabel("Drużyna")
     plt.tight_layout()
     pdf.savefig()
     plt.close()
@@ -296,7 +298,7 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
         <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
         <h1>Ligowe Steczki</h1>
         <h2>Uroczyste Rozdanie Nagród</h2>
-        <div class="season">Sezon 2023/2024</div>
+        <div class="season">Sezon 2024/2025</div>
     </div>
     <div class="page-break"></div>
     """
@@ -321,7 +323,12 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
                 <strong>Wartość:</strong> {award['Wartość']}
             </div>
             <img class="seal" src="../img/seal.png">
-            <div class="signature">Komisja Ligi Steczki</div>
+            <div class="signature">
+                <div class="sig-line">_________________________</div>
+                <div class="sig-title">Przewodniczący Komisji</div>
+                <div class="sig-sub">ds. Nagród Ligowych</div>
+                <div class="sig-org">FPL Steczek La Ligi</div>
+            </div>
             <div class="footer">Sezon 2024/2025</div>
         </div>
         """

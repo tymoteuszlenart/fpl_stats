@@ -48,8 +48,8 @@ body {
 }
 
 .emoji-icon {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     vertical-align: middle;
     margin-right: 12px;
 }
@@ -68,17 +68,38 @@ body {
     position: absolute;
     bottom: 60px;
     right: 60px;
-    width: 80px;
+    width: 160px;
     opacity: 0.5;
 }
 
 .signature {
     position: absolute;
-    bottom: 60px;
+    bottom: 80px;
     left: 60px;
-    font-style: italic;
-    font-size: 18px;
+    font-size: 16px;
     color: #444;
+    font-style: italic;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.sig-line {
+    font-style: normal;
+    color: #999;
+    margin-bottom: 6px;
+}
+
+.sig-title {
+    font-weight: bold;
+}
+
+.sig-sub {
+    font-size: 14px;
+}
+
+.sig-org {
+    font-size: 13px;
+    color: #777;
 }
 
 .cover h1 {
