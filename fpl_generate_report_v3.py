@@ -247,8 +247,9 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     for chip in ["3xc", "bboost", "freehit", "manager", "wildcard1", "wildcard2"]:
         chip_df = df[df["chip"] == chip]
         if not chip_df.empty:
+            # Aggregate points for manager chip through 3 gameweeks
             if chip == "manager":
-                agg_chip = manager_df.groupby("entry_name")["manager_points"].sum().reset_index().rename(columns={"manager_points": "points"}).sort_values("points", ascending=False)
+                agg_chip = manager_df.groupby("entry_name")["manager_points"].sum().reset_index().rename(columns={"manager_points": "points"})
             else:
                 agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
             d = agg_chip.sort_values("points", ascending=False)
