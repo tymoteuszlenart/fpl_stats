@@ -7,6 +7,12 @@ import os
 from collections import Counter
 from ast import literal_eval
 from weasyprint import HTML
+import datetime
+
+# Set season dates
+first_half_season_year = int(datetime.datetime.now().strftime("%Y")) - 1
+second_half_season_year = datetime.datetime.now().strftime("%Y")
+season = str(first_half_season_year) + "/" + second_half_season_year
 
 # Reading the CSV file
 print("🔄 Ładowanie danych z pliku csv/fpl_season_data.csv...")
@@ -299,22 +305,21 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
     # Awards section
     print(" 🔄 Generowanie sekcji nagród...")
 
-    html = """
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="../css/style.css" />
-        <title>Ligowe Steczki - Podsumowanie Sezonu</title>
+        <title>Ligowe Steczki - Nagrody</title>
     </head>
     <body>
     <div class="cover">
         <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
         <h1>Ligowe Steczki</h1>
         <h2>Uroczyste Rozdanie Nagród</h2>
-        <div class="season">Sezon 2024/2025</div>
+        <div class="season">Sezon {season}</div>
     </div>
-    <div class="page-break"></div>
     """
 
     for award in awards:
@@ -341,9 +346,9 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
                 <div class="sig-line">_________________________</div>
                 <div class="sig-title">Przewodniczący Komisji</div>
                 <div class="sig-sub">ds. Nagród Ligowych</div>
-                <div class="sig-org">FPL Steczek La Ligi</div>
+                <div class="sig-org">FPL Steczek La Liga</div>
             </div>
-            <div class="footer">Sezon 2024/2025</div>
+            <div class="footer">Sezon {season}</div>
         </div>
         """
 
