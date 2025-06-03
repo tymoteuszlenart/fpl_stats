@@ -25,7 +25,10 @@ body {
     justify-content: center;
     align-items: center;
     border: 20px solid #d4af37;
-    background: white;
+    background-image: url("../img/background.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     page-break-after: always;
     position: relative;
 }
@@ -68,8 +71,8 @@ body {
     position: absolute;
     bottom: 60px;
     right: 60px;
-    width: 160px;
-    opacity: 0.5;
+    width: 240px;
+    opacity: 0.8;
 }
 
 .signature {
