@@ -23,31 +23,44 @@ The results are presented as clear PDF reports and charts.
 
 ## How to Use
 
-1. **Install dependencies**  
-   Make sure you have Python 3 installed.  
+1. **Create virtual environment** 
+   Make sure you have Python 3 installed.
+   Create new virtual environment
+   ```bash
+   python -m venv venv
+   ```
+   For Windows use command:
+   ```bash
+   venv\Scripts\activate
+   ```
+   For Linux/macOS:
+   ```bash
+   source venv/bin/activate
+   ```
+2. **Install dependencies**   
    Install all required libraries using pip:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Create your own `.env` file in the project root directory.  
+3. Create your own `.env` file in the project root directory.  
    Add your session cookie from [https://fantasy.premierleague.com/api/me](https://fantasy.premierleague.com/api/me) and your league ID, for example:
    ```
    FPL_COOKIE=your_fpl_cookie_here
    LEAGUE_ID=your_league_id_here
    ```
 
-3. Run the main fetcher script to download data:
+4. Run the main fetcher script to download data:
    ```bash
    python fetch_fpl_league_data.py
    ```
 
-3. Run script to generate reports:
+5. Run script to generate reports:
    ```bash
    python fpl_generate_report_v3.py
    ```
 
-4. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
+6. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
 ---
 
