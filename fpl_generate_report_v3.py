@@ -171,9 +171,33 @@ add_award("Bez niego ani rusz",
 min_row = df.loc[df["points"].idxmin()]
 max_row = df.loc[df["points"].idxmax()]
 bench_max = df.loc[df["bench"].idxmax()]
+bench_min = df.loc[df["bench"].idxmin()]
 add_award("Najniższy wynik w sezonie", min_row["entry_name"], f"GW{min_row['gw']}", f'{min_row["points"]} pkt')
 add_award("Najwyższy wynik w sezonie", max_row["entry_name"], f"GW{max_row['gw']}", f'{max_row["points"]} pkt')
 add_award("Najwyższy wynik ławki w sezonie", bench_max["entry_name"], f"GW{bench_max['gw']}", f'{bench_max["bench"]} pkt')
+add_award("Najniższy wynik ławki w sezonie", bench_min["entry_name"], f"GW{bench_min['gw']}", f'{bench_min["bench"]} pkt')
+
+chips_used = df[df["chip"].notna()].groupby("entry_name")["chip"].count()
+min_chips = chips_used.min()
+min_chip_user = chips_used.idxmin()
+
+add_award(
+    "Najoszczędniejszy gracz",
+    min_chip_user,
+    "Najmniej użytych chipów w sezonie",
+    f"{min_chips} chip/-ów"
+)
+
+manager_df = df[df["chip"] == "manager"].copy()
+manager_df["team_list"] = manager_df["team"].dropna().apply(literal_eval)
+
+def extract_manager_points(team_list):
+    if isinstance(team_list, list) and len(team_list) > 0:
+        last_player = team_list[-1]
+        return last_player.get("points", 0)
+    return 0
+
+manager_df["manager_points"] = manager_df["team_list"].apply(extract_manager_points)
 
 # Top 30 captains choices of season
 top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
@@ -188,17 +212,6 @@ top_captains["desc"] = (
     top_captains["captain_points"].astype(int).astype(str) + " pkt - " +
     "GW" + top_captains["gw"].astype(str)    
 )
-
-manager_df = df[df["chip"] == "manager"].copy()
-manager_df["team_list"] = manager_df["team"].dropna().apply(literal_eval)
-
-def extract_manager_points(team_list):
-    if isinstance(team_list, list) and len(team_list) > 0:
-        last_player = team_list[-1]
-        return last_player.get("points", 0)
-    return 0
-
-manager_df["manager_points"] = manager_df["team_list"].apply(extract_manager_points)
 
 # Create output directory if it doesn't exist
 os.makedirs("fpl_output", exist_ok=True)
@@ -256,6 +269,11 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
             # Aggregate points for manager chip through 3 gameweeks
             if chip == "manager":
                 agg_chip = manager_df.groupby("entry_name")["manager_points"].sum().reset_index().rename(columns={"manager_points": "points"})
+            elif chip == "3xc":
+                agg_chip = chip_df.groupby("entry_name")["captain_points"].max().reset_index().rename(columns={"captain_points": "points"})
+                agg_chip["points"] *= 3  # Triple Captain multiplies points by 3
+            elif chip == "bboost":
+                agg_chip = chip_df.groupby("entry_name")["bench"].sum().reset_index().rename(columns={"bench": "points"})
             else:
                 agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
             d = agg_chip.sort_values("points", ascending=False)
