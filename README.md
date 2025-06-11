@@ -1,16 +1,74 @@
-# fpl_stats
+# FPL Stats Generator
 
-**fpl_stats** is an application for analyzing and generating statistical reports based on Fantasy Premier League data.  
-It allows you to process manager results, create season summaries, visualize statistics, and select winners in various categories.  
-The results are presented as clear PDF reports and charts.
+**FPL Stats Generator** to zaawansowane narzędzie do analizy i generowania raportów statystycznych dla Fantasy Premier League. Aplikacja przetwarza wyniki menedżerów, tworzy podsumowania sezonowe, wizualizuje statystyki i przyznaje nagrody w różnych kategoriach.
 
-## Features
+## Główne funkcje
 
-- Aggregation and analysis of FPL manager statistics
-- Automatic generation of season summary reports (PDF)
-- Visualization of key statistics (matplotlib, seaborn)
-- Awards for best and worst performances in various categories
-- Player name normalization and mapping
+### Analiza danych
+- Kompleksowa analiza statystyk drużyn
+- Śledzenie punktów kapitanów
+- Analiza skuteczności transferów
+- Monitorowanie punktów na ławce
+- Porównanie wyników między rundami
+
+### Wizualizacje
+- Wykresy statystyk sezonowych
+- Analiza wykorzystania chipów
+- Porównanie wildcardów
+- Statystyki kapitanów
+
+### Nagrody i wyróżnienia
+- Automatyczne przyznawanie nagród w różnych kategoriach
+- Generowanie dyplomów w formacie HTML i PDF
+- Szczegółowe uzasadnienia dla każdej nagrody
+
+## Architektura
+
+Projekt jest podzielony na moduły:
+- `fpl_data.py` - przetwarzanie i analiza danych
+- `fpl_plotting.py` - generowanie wykresów i wizualizacji
+- `fpl_html.py` - generowanie dokumentów HTML/PDF
+- `fpl_generate_report_v3.py` - główny skrypt koordynujący
+
+## Wymagania techniczne
+
+### Zależności
+- Python 3.8+
+- pandas - przetwarzanie danych
+- matplotlib & seaborn - wizualizacje
+- weasyprint - generowanie PDF
+
+### Struktura projektu
+```
+fpl_stats/
+├── csv/                    # Pliki z danymi
+├── json/                   # Mapowania zawodników
+├── css/                    # Style dla raportów
+├── img/                    # Grafiki do raportów
+├── test/                   # Testy jednostkowe
+└── fpl_output/            # Wygenerowane raporty
+```
+
+## Instalacja
+
+1. Sklonuj repozytorium:
+```bash
+git clone https://github.com/username/fpl_stats.git
+cd fpl_stats
+```
+
+2. Stwórz wirtualne środowisko:
+```bash
+python -m venv venv
+source venv/bin/activate  # dla macOS/Linux
+# lub
+venv\Scripts\activate     # dla Windows
+```
+
+3. Zainstaluj zależności:
+```bash
+pip install -r requirements.txt
+```
 
 ## Technologies Used
 
