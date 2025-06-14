@@ -41,14 +41,26 @@ def get_manager_data(entry_id, gw):
     team = [{"player_id":p["element"], "multiplier":p["multiplier"]} for p in picks_data]
     live_points = {e["id"]: e["stats"]["total_points"] for e in live["elements"]}
 
-    team_with_points = []
-    for player in team:
-        pid = player["player_id"]
-        team_with_points.append({
-            "player_id": pid,
-            "multiplier": player["multiplier"],
-            "points": live_points.get(pid, 0)
-        })
+    # Build team with points and identify captain/vice-captain
+    captain_id = next((pd["element"] for pd in picks_data if pd.get("is_captain")), None)
+    vice_captain_id = next((pd["element"] for pd in picks_data if pd.get("is_vice_captain")), None)
+
+    team_with_points = [
+        {
+            "player_id": p["player_id"],
+            "multiplier": p["multiplier"],
+            "points": live_points.get(p["player_id"], 0)
+        }
+        for p in team
+    ]
+
+    # Determine captain points: if captain played (multiplier > 1), use captain; else use vice-captain
+    captain_played = any(p["player_id"] == captain_id and p["multiplier"] > 1 for p in team_with_points)
+    if captain_played:
+        captain_points = live_points.get(captain_id, 0)
+    else:
+        captain_id = vice_captain_id
+        captain_points = live_points.get(vice_captain_id, 0)
 
     history = picks.get("entry_history", {})
     automatic_subs = picks.get("automatic_subs", [])
@@ -63,9 +75,7 @@ def get_manager_data(entry_id, gw):
     else:
         bench = history.get("points_on_bench")
 
-    captain_id = next((p["element"] for p in picks_data if p["is_captain"]), None)
-    captain_points = next((e["stats"]["total_points"] for e in live["elements"] if e["id"] == captain_id), 0)
-
+    
     in_ids = [t["element_in"] for t in automatic_subs]
     out_ids = [t["element_out"] for t in automatic_subs]
 
