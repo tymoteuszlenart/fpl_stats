@@ -12,7 +12,8 @@ Use this file for **every** Cloud Agent run on this repo. Each run should implem
 ## Git and pull requests
 
 - Branch from `main`. Use branch names: `cursor/<short-description>` (lowercase, hyphens).
-- One issue → one branch → one draft PR.
+- One issue → one branch → one PR.
+- **Open PRs ready for review (not draft)** when work is complete and verification steps are documented. Use a draft PR only if tests fail, the issue is blocked, or you are explicitly asked to keep it draft.
 - Commit messages: short imperative summary (e.g. `Fix autosub award unit label (#11)`).
 - PR body: what changed, how to verify, which issue it closes (`Closes #N`), and any follow-ups.
 - Do not commit secrets, `.env`, live CSV dumps, or generated PDFs/HTML under `fpl_output/`.
@@ -97,3 +98,4 @@ Independent issues (e.g. #11 label fix, #6 README env name) can ship in parallel
 - [ ] No secrets or large generated artifacts in the diff.
 - [ ] Verification steps documented in the PR.
 - [ ] Issue linked with `Closes #N` when appropriate.
+- [ ] PR is **ready for review** (not draft) unless blocked or tests are failing.
