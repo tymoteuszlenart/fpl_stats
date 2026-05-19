@@ -123,12 +123,12 @@ add_award("Steczek Roku",
 add_award("Jak to mówią: super sub!", 
           agg.sort_values("autosub_count", ascending=False).iloc[0]["entry_name"],
           "Najwięcej trafionych autosubów", 
-          f'{int(agg["autosub_count"].max())} pkt')
+          f'{int(agg["autosub_count"].max())} razy')
 
 add_award("Jeszcze jeden transferek...", 
           agg.sort_values("event_transfers", ascending=False).iloc[0]["entry_name"],
           "Najwięcej wykonanych transferów", 
-          f'{int(agg["event_transfers"].max())} pkt')
+          f'{int(agg["event_transfers"].max())} razy')
 
 bb = df[df["chip"] == "bboost"]
 if not bb.empty:
