@@ -62,6 +62,12 @@ The results are presented as clear PDF reports and charts.
 
 6. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
+### Assistant Manager chip (2024/25 and earlier)
+
+The **Assistant Manager** chip existed in 2024/25 but was **removed for 2025/26**. Season reports no longer include Assistant Manager charts or aggregation.
+
+If you still have CSV data from 2024/25 with `chip == "manager"` rows, those rows remain in the file but are ignored by the report generator. To analyze that season manually, filter `csv/fpl_season_data.csv` where `chip == "manager"` and use the official FPL scoring for those gameweeks (the report never used correct AM scoring).
+
 ---
 
 **Wybieramy Steczka Roku!**  
