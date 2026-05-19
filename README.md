@@ -91,6 +91,25 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
 
 6. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
+## Tests
+
+Automated tests use **pytest** and small fixtures under `tests/fixtures/` (no live FPL API or `.env` required).
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Useful variants:
+
+```bash
+pytest -q                    # quiet summary
+pytest tests/test_wildcard_chip.py -v
+python fpl_generate_report_v3.py --csv tests/fixtures/fpl_season_minimal.csv --no-write
+```
+
+CI runs `pytest` on push and pull requests to `main` (see `.github/workflows/test.yml`).
+
 ## Repository layout
 
 | Path | Role |
@@ -101,6 +120,7 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
 | `csv/` | **Generated** — season data from the fetcher (e.g. `fpl_season_data.csv`); gitignored |
 | `fpl_output/` | **Generated** — PDF/HTML reports and charts; gitignored |
 | `.env` | **Local only** — API cookie and league id; gitignored |
+| `tests/`, `tests/fixtures/` | Pytest suite and sample CSV/JSON (no network) |
 | `venv/`, `__pycache__/`, `.pytest_cache/` | Local Python environment and cache; gitignored |
 
 Do not commit live CSV dumps, report outputs, secrets, or cache directories. Source images, CSS, and JSON mapping files in the repo are intentional.

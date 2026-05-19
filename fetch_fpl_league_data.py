@@ -150,6 +150,13 @@ def get_league_entries(league_id):
     return entries
 
 
+def normalize_wildcard_chip(chip, gw):
+    """Map API wildcard chip to wildcard1 (GW < 20) or wildcard2 (GW >= 20)."""
+    if chip == "wildcard":
+        return "wildcard1" if gw < 20 else "wildcard2"
+    return chip
+
+
 def get_manager_data(entry_id, gw):
     picks_url = (
         f"https://fantasy.premierleague.com/api/entry/{entry_id}/event/{gw}/picks/"
@@ -274,11 +281,7 @@ def main():
                     "player_name": name,
                     "entry_name": entry_name,
                 })
-                if data["chip"] == "wildcard":
-                    if data["gw"] < 20:
-                        data.update({"chip": "wildcard1"})
-                    else:
-                        data.update({"chip": "wildcard2"})
+                data["chip"] = normalize_wildcard_chip(data["chip"], data["gw"])
                 all_data.append(data)
                 time.sleep(0.3)
             except FplAuthError as exc:

@@ -16,5 +16,10 @@ fpl_output/
 *.pdf
 *.html
 
-# Local test fixtures (see issue #9 for committed samples)
+# Local scratch test data (committed suite lives under tests/)
 test/
+
+# Allow committed pytest fixtures; ignore other CSV at repo root
+!tests/
+!tests/fixtures/
+!tests/fixtures/**/*.csv
