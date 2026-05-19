@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Syntax check (py_compile)
+        run: |
+          python -m py_compile \
+            fpl_generate_report_v3.py \
+            fetch_fpl_league_data.py \
+            map_players_name.py
+
+      - name: Run pytest
+        run: |
+          python -m pytest -q
+          code=$?
+          if [ "$code" -eq 5 ]; then
+            echo "No tests collected yet; pytest will run the suite once test/ exists."
+            exit 0
+          fi
+          exit "$code"
