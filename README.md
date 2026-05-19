@@ -1,5 +1,7 @@
 # fpl_stats
 
+![CI](https://github.com/tymoteuszlenart/fpl_stats/actions/workflows/ci.yml/badge.svg)
+
 **fpl_stats** is an application for analyzing and generating statistical reports based on Fantasy Premier League data.  
 It allows you to process manager results, create season summaries, visualize statistics, and select winners in various categories.  
 The results are presented as clear PDF reports and charts.
