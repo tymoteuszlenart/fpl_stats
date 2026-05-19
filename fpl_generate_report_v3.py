@@ -53,17 +53,20 @@ def build_aggregates(df):
         "event_transfers": "sum"
     }).reset_index()
 
-    avg_gw = df.groupby("entry_name")["points"].mean()
-    avg_bench = df.groupby("entry_name")["bench"].mean()
-    agg["avg_gw_points"] = agg["entry_name"].map(avg_gw)
-    agg["avg_bench_points"] = agg["entry_name"].map(avg_bench)
+    agg["avg_gw_points"] = agg["entry_name"].map(
+        df.groupby("entry_name")["points"].mean()
+    )
+    agg["avg_bench_points"] = agg["entry_name"].map(
+        df.groupby("entry_name")["bench"].mean()
+    )
     agg["efficiency"] = (agg["points"] - agg["hits"]) / num_gw
     agg["transfer_loss"] = df.groupby("entry_name")["transfer_gain"].apply(lambda x: x[x < 0].sum())
     agg["total_hits"] = agg["entry_name"].map(
         df.groupby("entry_name")["hits"].sum().divide(4).astype(int)
     )
-    max_bench = df[df["chip"] != "bboost"].groupby("entry_name")["bench"].sum()
-    agg["max_bench_points"] = agg["entry_name"].map(max_bench).fillna(0)
+    agg["max_bench_points"] = agg["entry_name"].map(
+        df[df["chip"] != "bboost"].groupby("entry_name")["bench"].sum()
+    ).fillna(0)
 
     best = df.loc[df.groupby("gw")["points"].idxmax()].entry_name.value_counts()
     worst = df.loc[df.groupby("gw")["points"].idxmin()].entry_name.value_counts()

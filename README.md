@@ -1,5 +1,7 @@
 # fpl_stats
 
+![CI](https://github.com/tymoteuszlenart/fpl_stats/actions/workflows/ci.yml/badge.svg)
+
 **fpl_stats** is an application for analyzing and generating statistical reports based on Fantasy Premier League data.  
 It allows you to process manager results, create season summaries, visualize statistics, and select winners in various categories.  
 The results are presented as clear PDF reports and charts.
@@ -83,6 +85,14 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
    ```bash
    python fetch_fpl_league_data.py
    ```
+
+   By default only **finished** gameweeks are fetched (from FPL `bootstrap-static` metadata). Other ranges:
+   ```bash
+   python fetch_fpl_league_data.py --through-current   # GW 1 through current
+   python fetch_fpl_league_data.py --full-season       # all gameweeks (e.g. 38)
+   python fetch_fpl_league_data.py --max-gw 10         # cap upper GW
+   ```
+   Optional env: `FPL_FETCH_MODE` (`finished`, `current`, or `full`), `FPL_MAX_GW`.
 
 5. Run script to generate reports:
    ```bash
