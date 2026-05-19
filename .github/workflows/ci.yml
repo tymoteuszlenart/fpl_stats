@@ -33,8 +33,9 @@ jobs:
 
       - name: Run pytest
         run: |
-          python -m pytest -q
-          code=$?
+          # bash -e (GitHub Actions default) exits before $? if pytest fails; use || to capture.
+          code=0
+          python -m pytest -q || code=$?
           if [ "$code" -eq 5 ]; then
             echo "No tests collected yet; pytest will run the suite once test/ exists."
             exit 0
