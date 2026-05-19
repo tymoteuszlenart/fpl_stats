@@ -188,6 +188,17 @@ add_award(
     f"{min_chips} chip/-ów"
 )
 
+manager_df = df[df["chip"] == "manager"].copy()
+manager_df["team_list"] = manager_df["team"].dropna().apply(literal_eval)
+
+def extract_manager_points(team_list):
+    if isinstance(team_list, list) and len(team_list) > 0:
+        last_player = team_list[-1]
+        return last_player.get("points", 0)
+    return 0
+
+manager_df["manager_points"] = manager_df["team_list"].apply(extract_manager_points)
+
 # Top 30 captains choices of season
 top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
 top_captains = top_captains.sort_values("captain_points", ascending=False).head(30)
@@ -246,19 +257,15 @@ with PdfPages("fpl_output/fpl_sezon_podsumowanie.pdf") as pdf:
         "3xc": "Triple Captain",
         "bboost": "Bench Boost",
         "freehit": "Free Hit",
-        "manager": "Assistant Manager",
         "wildcard1": "Wildcard - 1st Round",
         "wildcard2": "Wildcard - 2nd Round"
     }
 
-    # Chips usage
-    for chip in ["3xc", "bboost", "freehit", "manager", "wildcard1", "wildcard2"]:
+    # Chips usage (Assistant Manager removed from FPL in 2025/26)
+    for chip in ["3xc", "bboost", "freehit", "wildcard1", "wildcard2"]:
         chip_df = df[df["chip"] == chip]
         if not chip_df.empty:
-            # Aggregate points for manager chip through 3 gameweeks
-            if chip == "manager":
-                agg_chip = manager_df.groupby("entry_name")["manager_points"].sum().reset_index().rename(columns={"manager_points": "points"})
-            elif chip == "3xc":
+            if chip == "3xc":
                 agg_chip = chip_df.groupby("entry_name")["captain_points"].max().reset_index().rename(columns={"captain_points": "points"})
                 agg_chip["points"] *= 3  # Triple Captain multiplies points by 3
             elif chip == "bboost":
