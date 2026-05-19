@@ -86,6 +86,14 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
    python fetch_fpl_league_data.py
    ```
 
+   By default only **finished** gameweeks are fetched (from FPL `bootstrap-static` metadata). Other ranges:
+   ```bash
+   python fetch_fpl_league_data.py --through-current   # GW 1 through current
+   python fetch_fpl_league_data.py --full-season       # all gameweeks (e.g. 38)
+   python fetch_fpl_league_data.py --max-gw 10         # cap upper GW
+   ```
+   Optional env: `FPL_FETCH_MODE` (`finished`, `current`, or `full`), `FPL_MAX_GW`.
+
 5. Run script to generate reports:
    ```bash
    python fpl_generate_report_v3.py
