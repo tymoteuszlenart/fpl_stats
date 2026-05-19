@@ -188,16 +188,6 @@ add_award(
     f"{min_chips} chip/-ów"
 )
 
-manager_df = df[df["chip"] == "manager"].copy()
-manager_df["team_list"] = manager_df["team"].dropna().apply(literal_eval)
-
-def extract_manager_points(team_list):
-    if isinstance(team_list, list) and len(team_list) > 0:
-        last_player = team_list[-1]
-        return last_player.get("points", 0)
-    return 0
-
-manager_df["manager_points"] = manager_df["team_list"].apply(extract_manager_points)
 
 # Top 30 captains choices of season
 top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
