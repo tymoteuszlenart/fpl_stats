@@ -62,6 +62,20 @@ The results are presented as clear PDF reports and charts.
 
 6. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
+## Repository layout
+
+| Path | Role |
+|------|------|
+| `fetch_fpl_league_data.py`, `fpl_generate_report_v3.py`, `map_players_name.py` | Source scripts |
+| `img/`, `css/` | Committed assets for PDF/HTML reports |
+| `json/` | Player ID mapping templates (`player_id_map.json`, `player_id_mapped.json`) |
+| `csv/` | **Generated** — season data from the fetcher (e.g. `fpl_season_data.csv`); gitignored |
+| `fpl_output/` | **Generated** — PDF/HTML reports and charts; gitignored |
+| `.env` | **Local only** — API cookie and league id; gitignored |
+| `venv/`, `__pycache__/`, `.pytest_cache/` | Local Python environment and cache; gitignored |
+
+Do not commit live CSV dumps, report outputs, secrets, or cache directories. Source images, CSS, and JSON mapping files in the repo are intentional.
+
 ### Assistant Manager chip (2024/25 and earlier)
 
 The **Assistant Manager** chip existed in 2024/25 but was **removed for 2025/26**. Season reports no longer include Assistant Manager charts or aggregation.
