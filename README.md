@@ -12,9 +12,35 @@ The results are presented as clear PDF reports and charts.
 - Awards for best and worst performances in various categories
 - Player name normalization and mapping
 
+## Python environment
+
+- **Supported Python:** 3.10 or newer (tested on 3.12).
+- **Runtime dependencies:** `pip install -r requirements.txt` (pinned versions).
+- **Development / tests:** `pip install -r requirements-dev.txt` (includes pytest).
+
+### WeasyPrint system packages (PDF generation)
+
+`fpl_generate_report_v3.py` uses WeasyPrint, which needs **Pango** and related libraries on the OS. Install these before `pip install` if PDF generation fails with missing-library errors.
+
+**Ubuntu ≥ 20.04** (wheels; typical for a venv):
+
+```bash
+sudo apt install python3-pip libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 libharfbuzz-subset0
+```
+
+**Debian ≥ 11** (wheels):
+
+```bash
+sudo apt install python3-pip libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+```
+
+Alternatively, install the distribution package: `sudo apt install weasyprint` (no separate pip install of weasyprint required for CLI use; this project still installs it via `requirements.txt` for the Python API).
+
+See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for other platforms and build-from-source dependencies.
+
 ## Technologies Used
 
-- **Python 3**
+- **Python 3.10+**
 - **pandas** – data processing and analysis
 - **matplotlib** & **seaborn** – data visualization
 - **json** – reading and writing player data
@@ -24,7 +50,7 @@ The results are presented as clear PDF reports and charts.
 ## How to Use
 
 1. **Create virtual environment** 
-   Make sure you have Python 3 installed.
+   Use Python 3.10 or newer (`python3 --version`).
    Create new virtual environment
    ```bash
    python -m venv venv
@@ -38,10 +64,11 @@ The results are presented as clear PDF reports and charts.
    source venv/bin/activate
    ```
 2. **Install dependencies**   
-   Install all required libraries using pip:
+   On Ubuntu/Debian, install [WeasyPrint system packages](#weasyprint-system-packages-pdf-generation) if you need PDF reports. Then install Python packages:
    ```bash
    pip install -r requirements.txt
    ```
+   For development or running tests: `pip install -r requirements-dev.txt`.
 
 3. Create your own `.env` file in the project root directory.  
    Add your session cookie from [https://fantasy.premierleague.com/api/me](https://fantasy.premierleague.com/api/me) and your league ID, for example:
