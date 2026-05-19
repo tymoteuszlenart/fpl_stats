@@ -8,6 +8,21 @@ load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
 LEAGUE_ID = os.getenv("FPL_LEAGUE_ID")
 
+
+def require_env():
+    missing = []
+    if not COOKIE:
+        missing.append("FPL_COOKIE")
+    if not LEAGUE_ID:
+        missing.append("FPL_LEAGUE_ID")
+    if missing:
+        raise SystemExit(
+            "Missing required environment variable(s): "
+            + ", ".join(missing)
+            + ". Set them in .env (see README.md or .env.example)."
+        )
+
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Cookie": COOKIE
@@ -102,6 +117,7 @@ def get_manager_data(entry_id, gw):
     }
 
 def main():
+    require_env()
     league = get_league_entries(LEAGUE_ID)
     all_data = []
 

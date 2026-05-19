@@ -47,8 +47,10 @@ The results are presented as clear PDF reports and charts.
    Add your session cookie from [https://fantasy.premierleague.com/api/me](https://fantasy.premierleague.com/api/me) and your league ID, for example:
    ```
    FPL_COOKIE=your_fpl_cookie_here
-   LEAGUE_ID=your_league_id_here
+   FPL_LEAGUE_ID=your_league_id_here
    ```
+
+   See `.env.example` for a template you can copy to `.env`.
 
 4. Run the main fetcher script to download data:
    ```bash
