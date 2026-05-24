@@ -22,7 +22,11 @@ The results are presented as clear PDF reports and charts.
 
 ### WeasyPrint system packages (PDF generation)
 
-`fpl_generate_report_v3.py` uses WeasyPrint, which needs **Pango** and related libraries on the OS. Install these before `pip install` if PDF generation fails with missing-library errors.
+`fpl_generate_report_v3.py` uses WeasyPrint to render the awards section. WeasyPrint needs **Pango**, **Cairo**, and related native libraries. Install OS packages before `pip install` if PDF generation fails with missing-library errors.
+
+Awards PDF/HTML use **local** assets only (`css/`, `img/` at the project root, Unicode icons in HTML). No network access is required to build `fpl_output/awards.pdf`.
+
+#### Linux
 
 **Ubuntu ≥ 20.04** (wheels; typical for a venv):
 
@@ -36,9 +40,47 @@ sudo apt install python3-pip libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 libh
 sudo apt install python3-pip libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
 ```
 
-Alternatively, install the distribution package: `sudo apt install weasyprint` (no separate pip install of weasyprint required for CLI use; this project still installs it via `requirements.txt` for the Python API).
+Alternatively, install the distribution package: `sudo apt install weasyprint` (this project still installs WeasyPrint via `requirements.txt` for the Python API).
 
-See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for other platforms and build-from-source dependencies.
+#### macOS
+
+With [Homebrew](https://brew.sh/):
+
+```bash
+brew install weasyprint
+```
+
+Or install Pango for a venv (then `pip install -r requirements.txt`):
+
+```bash
+brew install pango
+```
+
+If WeasyPrint cannot find libraries, set `DYLD_FALLBACK_LIBRARY_PATH` (Homebrew on Apple Silicon often uses `/opt/homebrew/lib`).
+
+#### Windows
+
+Easiest path: use the [WeasyPrint release executable](https://github.com/Kozea/WeasyPrint/releases) for one-off PDFs.
+
+For the Python API (`pip install -r requirements.txt`), install [MSYS2](https://www.msys2.org/), then in an MSYS2 shell:
+
+```bash
+pacman -S mingw-w64-x86_64-pango
+```
+
+In a normal Command Prompt, use a venv and set DLL search path if needed:
+
+```bat
+python -m venv venv
+venv\Scripts\activate.bat
+pip install -r requirements.txt
+set WEASYPRINT_DLL_DIRECTORIES=C:\msys64\mingw64\bin
+python fpl_generate_report_v3.py
+```
+
+[WSL](https://learn.microsoft.com/en-us/windows/wsl/) with the Linux packages above is another option.
+
+See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for Fedora, Alpine, and build-from-source dependencies.
 
 ## Technologies Used
 

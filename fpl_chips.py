@@ -1,5 +1,7 @@
 """FPL chip naming for 2025/26 double-chip seasons (two uses per chip type)."""
 
+import pandas as pd
+
 CHIP_HALF_SPLIT_GW = 20
 SPLITTABLE_CHIPS = frozenset({"wildcard", "bboost", "freehit", "3xc"})
 
@@ -63,3 +65,51 @@ def normalize_chips_dataframe(df):
 
 def is_bench_boost_chip(chip):
     return chip in BENCH_BOOST_CHIPS
+
+
+SEASON_CHIP_SLOTS = frozenset(HALF_CHIP_ORDER)
+MAX_CHIPS_PER_SEASON = len(HALF_CHIP_ORDER)
+
+CHIP_SLOT_SHORT_LABELS = {
+    "3xc1": "3xC (I poł.)",
+    "3xc2": "3xC (II poł.)",
+    "bboost1": "BB (I poł.)",
+    "bboost2": "BB (II poł.)",
+    "freehit1": "FH (I poł.)",
+    "freehit2": "FH (II poł.)",
+    "wildcard1": "WC (I poł.)",
+    "wildcard2": "WC (II poł.)",
+}
+
+
+def used_season_chips(chip_series):
+    """Half-specific chip slots present in *chip_series*, in display order."""
+    used = set(chip_series.dropna()) & SEASON_CHIP_SLOTS
+    return [chip for chip in HALF_CHIP_ORDER if chip in used]
+
+
+def unused_season_chips(chip_series):
+    """Half-specific chip slots not present in *chip_series* (2025/26, up to 8)."""
+    used = set(chip_series.dropna()) & SEASON_CHIP_SLOTS
+    return [chip for chip in HALF_CHIP_ORDER if chip not in used]
+
+
+def format_chip_slots_summary(slots):
+    if not slots:
+        return ""
+    return ", ".join(CHIP_SLOT_SHORT_LABELS.get(c, c) for c in slots)
+
+
+def format_unused_chips_summary(unused_slots):
+    return format_chip_slots_summary(unused_slots)
+
+
+def season_chip_usage_by_entry(df):
+    """Per manager: distinct half-specific chip activations (0–8). Includes zero-use entries."""
+    entries = pd.Index(df["entry_name"].unique())
+    used = (
+        df.loc[df["chip"].isin(SEASON_CHIP_SLOTS), ["entry_name", "chip"]]
+        .groupby("entry_name")["chip"]
+        .nunique()
+    )
+    return used.reindex(entries, fill_value=0).astype(int)

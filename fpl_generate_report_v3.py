@@ -17,9 +17,15 @@ from fpl_chips import (
     COMBINED_HALF_CHART_SPECS,
     FREE_HIT_CHIPS,
     HALF_CHIP_ORDER,
+    MAX_CHIPS_PER_SEASON,
     TRIPLE_CAPTAIN_CHIPS,
+    format_chip_slots_summary,
+    format_unused_chips_summary,
     is_bench_boost_chip,
     normalize_chips_dataframe,
+    season_chip_usage_by_entry,
+    unused_season_chips,
+    used_season_chips,
 )
 
 
@@ -34,6 +40,91 @@ def player_display_name(player_id, id_to_name):
     if player_id in id_to_name:
         return id_to_name[player_id]
     return f"Gracz #{player_id}"
+
+
+def report_project_root():
+    """Absolute path to repo root (directory containing css/ and img/)."""
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+# Unicode icons for awards HTML (no external CDN; works offline in WeasyPrint).
+_AWARD_ICON_TROPHY = "🏆"
+_AWARD_ICON_SHIRT = "👕"
+_AWARD_ICON_TARGET = "🎯"
+_AWARD_ICON_CHART = "📊"
+
+
+def build_awards_html(awards, season):
+    """Build awards ceremony HTML using only local asset paths (css/, img/)."""
+    trophy = (
+        f'<span class="emoji-icon" role="img" aria-label="trofeum">{_AWARD_ICON_TROPHY}</span>'
+    )
+    shirt = (
+        f'<span class="emoji-icon" role="img" aria-label="koszulka">{_AWARD_ICON_SHIRT}</span>'
+    )
+    target = (
+        f'<span class="emoji-icon" role="img" aria-label="cel">{_AWARD_ICON_TARGET}</span>'
+    )
+    chart = (
+        f'<span class="emoji-icon" role="img" aria-label="wykres">{_AWARD_ICON_CHART}</span>'
+    )
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/style.css" />
+        <title>Ligowe Steczki - Nagrody</title>
+    </head>
+    <body>
+    <div class="cover">
+        {trophy}
+        <h1>Ligowe Steczki</h1>
+        <h2>Uroczyste Rozdanie Nagród</h2>
+        <div class="season">Sezon {season}</div>
+    </div>
+    """
+
+    for award in awards:
+        html += f"""
+        <div class="award">
+            <div class="title">
+                {trophy}
+                {award['Nagroda']}
+            </div>
+            <div class="label">
+                {shirt}
+                <strong>Drużyna:</strong> {award['Drużyna']}
+            </div>
+            <div class="label">
+                {target}
+                <strong>Za co:</strong> {award['Za co']}
+            </div>
+            <div class="label">
+                {chart}
+                <strong>Wartość:</strong> {award['Wartość']}
+            </div>
+            <img class="seal" src="img/seal.png" alt="">
+            <div class="signature">
+                <div class="sig-line">_________________________</div>
+                <div class="sig-title">Przewodniczący Komisji</div>
+                <div class="sig-sub">ds. Nagród Ligowych</div>
+                <div class="sig-org">FPL Steczek La Liga</div>
+            </div>
+            <div class="footer">Sezon {season}</div>
+        </div>
+        """
+
+    html += "</body></html>"
+    return html
+
+
+def write_awards_pdf(html, pdf_path, base_url=None):
+    """Render awards HTML to PDF using project-root asset resolution (no network)."""
+    if base_url is None:
+        base_url = report_project_root()
+    HTML(string=html, base_url=base_url).write_pdf(pdf_path)
 
 
 def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_mapped.json"):
@@ -209,16 +300,37 @@ def build_awards(df, agg, id_to_name):
     add_award("Najwyższy wynik ławki w sezonie", bench_max["entry_name"], f"GW{bench_max['gw']}", f'{bench_max["bench"]} pkt')
     add_award("Najniższy wynik ławki w sezonie", bench_min["entry_name"], f"GW{bench_min['gw']}", f'{bench_min["bench"]} pkt')
 
-    chips_used = df[df["chip"].notna()].groupby("entry_name")["chip"].count()
-    min_chips = chips_used.min()
-    min_chip_user = chips_used.idxmin()
+    chip_usage = season_chip_usage_by_entry(df)
+    chip_rules = (
+        f"(max {MAX_CHIPS_PER_SEASON}: po dwa BB, 3xC, FH i WC w 2025/26)"
+    )
+    min_chips = int(chip_usage.min())
+    min_chip_user = chip_usage.idxmin()
+    unused = unused_season_chips(df.loc[df["entry_name"] == min_chip_user, "chip"])
+    thrift_reason = f"Najmniej aktywacji chipów w sezonie {chip_rules}"
+    if unused:
+        thrift_reason += f" — nieużywane: {format_unused_chips_summary(unused)}"
 
     add_award(
         "Najoszczędniejszy gracz",
         min_chip_user,
-        "Najmniej użytych chipów w sezonie",
-        f"{min_chips} chip/-ów"
+        thrift_reason,
+        f"{min_chips} razy (z {MAX_CHIPS_PER_SEASON})",
     )
+
+    max_chips = int(chip_usage.max())
+    if max_chips > 0:
+        max_chip_user = chip_usage.idxmax()
+        used = used_season_chips(df.loc[df["entry_name"] == max_chip_user, "chip"])
+        hoarder_reason = f"Najwięcej aktywacji chipów w sezonie {chip_rules}"
+        if used:
+            hoarder_reason += f" — użyte: {format_chip_slots_summary(used)}"
+        add_award(
+            "Bank chipów pusty nie będzie",
+            max_chip_user,
+            hoarder_reason,
+            f"{max_chips} razy (z {MAX_CHIPS_PER_SEASON})",
+        )
 
     top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
     top_captains = top_captains.sort_values("captain_points", ascending=False).head(30)
@@ -378,61 +490,14 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
 
         print(" 🔄 Generowanie sekcji nagród...")
 
-        html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="../css/style.css" />
-        <title>Ligowe Steczki - Nagrody</title>
-    </head>
-    <body>
-    <div class="cover">
-        <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
-        <h1>Ligowe Steczki</h1>
-        <h2>Uroczyste Rozdanie Nagród</h2>
-        <div class="season">Sezon {season}</div>
-    </div>
-    """
-
-        for award in awards:
-            html += f"""
-        <div class="award">
-            <div class="title">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
-                {award['Nagroda']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/t-shirt_1f455.png" alt="shirt">
-                <strong>Drużyna:</strong> {award['Drużyna']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/direct-hit_1f3af.png" alt="target">
-                <strong>Za co:</strong> {award['Za co']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/bar-chart_1f4ca.png" alt="chart">
-                <strong>Wartość:</strong> {award['Wartość']}
-            </div>
-            <img class="seal" src="../img/seal.png">
-            <div class="signature">
-                <div class="sig-line">_________________________</div>
-                <div class="sig-title">Przewodniczący Komisji</div>
-                <div class="sig-sub">ds. Nagród Ligowych</div>
-                <div class="sig-org">FPL Steczek La Liga</div>
-            </div>
-            <div class="footer">Sezon {season}</div>
-        </div>
-        """
-
-        html += "</body></html>"
+        html = build_awards_html(awards, season)
 
         with open(awards_html_path, "w", encoding="utf-8") as f:
             f.write(html)
             print(f" ✅ Sekcja nagród wygenerowana. Zapisano jako {awards_html_path}")
 
         print(" 🔄 Generowanie PDF z sekcją nagród...")
-        HTML(awards_html_path).write_pdf(awards_pdf_path)
+        write_awards_pdf(html, awards_pdf_path, base_url=report_project_root())
         print(f" ✅ PDF z sekcją nagród zapisany jako {awards_pdf_path}")
 
         fig, ax = plt.subplots(figsize=(6, 12))
