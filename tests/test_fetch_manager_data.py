@@ -96,3 +96,23 @@ def test_non_bench_boost_uses_points_on_bench(mock_get):
     ]
     row = get_manager_data(999, 1)
     assert row["bench"] == 7
+
+
+@patch("fetch_fpl_league_data.fpl_get")
+def test_null_entry_history_still_returns_chip_key(mock_get):
+    captain_id, vice_id = 1, 2
+    payload = _picks_payload(
+        captain_id=captain_id, vice_id=vice_id, captain_multiplier=2, chip="bboost"
+    )
+    payload["entry_history"] = None
+    mock_get.side_effect = [
+        payload,
+        _live_payload({
+            1: 5, 2: 4, 3: 3, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1,
+            201: 1, 202: 1, 203: 1, 204: 1,
+        }),
+    ]
+    row = get_manager_data(999, 38)
+    assert "chip" in row
+    assert row["chip"] == "bboost"
+    assert row["gw"] == 38

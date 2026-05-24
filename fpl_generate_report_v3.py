@@ -11,6 +11,17 @@ import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 from weasyprint import HTML
 
+from fpl_chips import (
+    BENCH_BOOST_CHIPS,
+    CHIP_CHART_LABELS,
+    COMBINED_HALF_CHART_SPECS,
+    FREE_HIT_CHIPS,
+    HALF_CHIP_ORDER,
+    TRIPLE_CAPTAIN_CHIPS,
+    is_bench_boost_chip,
+    normalize_chips_dataframe,
+)
+
 
 def default_season_label():
     first_half_season_year = int(datetime.datetime.now().strftime("%Y")) - 1
@@ -25,6 +36,7 @@ def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_m
         df = pd.read_csv(csv_path)
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"Plik {csv_path} nie został znaleziony") from exc
+    df = normalize_chips_dataframe(df)
     print(f"✅ Załadowano dane z pliku {csv_path}")
 
     print(f"🔄 Ładowanie danych z pliku {mapping_path}...")
@@ -65,7 +77,7 @@ def build_aggregates(df):
         df.groupby("entry_name")["hits"].sum().divide(4).astype(int)
     )
     agg["max_bench_points"] = agg["entry_name"].map(
-        df[df["chip"] != "bboost"].groupby("entry_name")["bench"].sum()
+        df[~df["chip"].apply(is_bench_boost_chip)].groupby("entry_name")["bench"].sum()
     ).fillna(0)
 
     best = df.loc[df.groupby("gw")["points"].idxmax()].entry_name.value_counts()
@@ -144,29 +156,29 @@ def build_awards(df, agg, id_to_name):
               "Najwięcej wykonanych transferów",
               f'{int(agg["event_transfers"].max())} razy')
 
-    bb = df[df["chip"] == "bboost"]
+    bb = df[df["chip"].isin(BENCH_BOOST_CHIPS)]
     if not bb.empty:
         best_bb = bb.sort_values("bench", ascending=False).iloc[0]
         add_award("Mykolenko w końcu punktuje",
                   best_bb["entry_name"],
-                  f"Najwięcej punktów z ławki (GW {int(best_bb['gw'])})",
+                  f"Najlepsze pojedyncze Bench Boost (GW {int(best_bb['gw'])})",
                   f"{int(best_bb['bench'])} pkt")
 
-    tc = df[df["chip"] == "3xc"]
+    tc = df[df["chip"].isin(TRIPLE_CAPTAIN_CHIPS)]
     if not tc.empty:
         best_tc = tc.sort_values("captain_points", ascending=False).iloc[0]
         add_award("Salah czy nie Salah?",
                   best_tc["entry_name"],
-                  f"Najwięcej pkt kapitana z 3xC (GW {int(best_tc['gw'])})",
+                  f"Najlepsze pojedyncze 3xC (GW {int(best_tc['gw'])})",
                   f"{int(best_tc['captain_points']) * 3} pkt")
 
     df["prev_points"] = df.sort_values(["entry_name", "gw"]).groupby("entry_name")["points"].shift(1)
-    fh = df[df["chip"] == "freehit"]
+    fh = df[df["chip"].isin(FREE_HIT_CHIPS)]
     if not fh.empty:
         best_fh = fh.sort_values("points", ascending=False).iloc[0]
         add_award("Upolowane",
                   best_fh["entry_name"],
-                  f"Najwięcej punktów z Free Hit (GW {int(best_fh['gw'])})",
+                  f"Najlepsze pojedyncze Free Hit (GW {int(best_fh['gw'])})",
                   f"{int(best_fh['points'])} pkt")
 
     df["team_list"] = df["team"].dropna().apply(literal_eval)
@@ -217,6 +229,70 @@ def build_awards(df, agg, id_to_name):
     return awards, top_captains
 
 
+def _aggregate_chip_chart(chip_df, chip):
+    """Per-manager metric for a single half-specific chip (best single GW)."""
+    if chip.startswith("3xc"):
+        out = chip_df.groupby("entry_name")["captain_points"].max().reset_index()
+        out = out.rename(columns={"captain_points": "points"})
+        out["points"] *= 3
+    elif chip.startswith("bboost"):
+        out = chip_df.groupby("entry_name")["bench"].max().reset_index()
+        out = out.rename(columns={"bench": "points"})
+    else:
+        out = chip_df.groupby("entry_name")["points"].max().reset_index()
+    return out.sort_values("points", ascending=False)
+
+
+def _half_combined_series(df, half_chips, value_col, mode):
+    chip_df = df[df["chip"].isin(half_chips)]
+    if chip_df.empty:
+        return pd.Series(dtype=float)
+    if mode == "max_triple":
+        return chip_df.groupby("entry_name")["captain_points"].max() * 3
+    if mode == "sum":
+        return chip_df.groupby("entry_name")[value_col].sum()
+    return chip_df.groupby("entry_name")[value_col].max()
+
+
+def _plot_combined_chip_halves(pdf, df, title_prefix, chip_set, value_col, mode):
+    """Side-by-side bar chart for 1st/2nd half chip uses (values not mixed)."""
+    chips_1 = {c for c in chip_set if c.endswith("1")}
+    chips_2 = {c for c in chip_set if c.endswith("2")}
+    half1 = _half_combined_series(df, chips_1, value_col, mode)
+    half2 = _half_combined_series(df, chips_2, value_col, mode)
+    if half1.empty and half2.empty:
+        return
+
+    all_managers = df["entry_name"].unique()
+    combined = pd.DataFrame(index=all_managers)
+    combined[f"{title_prefix} 1"] = half1
+    combined[f"{title_prefix} 2"] = half2
+    combined = combined.fillna(0).astype(int)
+
+    plt.figure(figsize=(10, 6))
+    sort_col = (
+        f"{title_prefix} 1"
+        if combined[f"{title_prefix} 1"].sum() >= combined[f"{title_prefix} 2"].sum()
+        else f"{title_prefix} 2"
+    )
+    sorted_df = combined.sort_values(sort_col, ascending=False)
+    ax = sorted_df.plot(kind="barh", stacked=False, ax=plt.gca(), colormap="Set2")
+
+    for i, (_, row) in enumerate(sorted_df.iterrows()):
+        v1 = row[f"{title_prefix} 1"]
+        v2 = row[f"{title_prefix} 2"]
+        if v1 > 0:
+            ax.text(v1 + 1, i - 0.2, str(int(v1)), va="center", fontsize=9)
+        if v2 > 0:
+            ax.text(v2 + 1, i + 0.2, str(int(v2)), va="center", fontsize=9)
+
+    plt.title(f"{title_prefix} — 1. i 2. połowa (osobno, bez mieszania)")
+    plt.tight_layout()
+    pdf.savefig()
+    plt.close()
+
+
+
 def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season=None, write_output=True):
     """Generate PDF/HTML reports. Set write_output=False to skip file I/O (e.g. tests)."""
     if season is None:
@@ -246,7 +322,7 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
             ("worst_gw_count", "Ilość najgorszych wyników w kolejce I", "magma"),
         ]:
             if col == "bench":
-                filtered_df = df[df["chip"] != "bboost"]
+                filtered_df = df[~df["chip"].apply(is_bench_boost_chip)]
                 bench_points = filtered_df.groupby("entry_name")["bench"].sum().reset_index()
                 d = bench_points.sort_values("bench", ascending=False)
             elif col == "avg_bench_points":
@@ -264,63 +340,32 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
             pdf.savefig()
             plt.close()
 
-        chip_names = {
-            "3xc": "Triple Captain",
-            "bboost": "Bench Boost",
-            "freehit": "Free Hit",
-            "wildcard1": "Wildcard - 1st Round",
-            "wildcard2": "Wildcard - 2nd Round"
-        }
-
-        for chip in ["3xc", "bboost", "freehit", "wildcard1", "wildcard2"]:
+        for chip in HALF_CHIP_ORDER:
             chip_df = df[df["chip"] == chip]
-            if not chip_df.empty:
-                if chip == "3xc":
-                    agg_chip = chip_df.groupby("entry_name")["captain_points"].max().reset_index().rename(columns={"captain_points": "points"})
-                    agg_chip["points"] *= 3
-                elif chip == "bboost":
-                    agg_chip = chip_df.groupby("entry_name")["bench"].sum().reset_index().rename(columns={"bench": "points"})
-                else:
-                    agg_chip = chip_df.groupby("entry_name")["points"].sum().reset_index()
-                d = agg_chip.sort_values("points", ascending=False)
-                plt.figure(figsize=(10, 6))
-                ax = sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette='cubehelix')
-                for i, v in enumerate(d["points"]):
-                    if not pd.isna(v):
-                        ax.text(v + 0.5, i, f"{int(v)}", va='center')
-                plt.title(f"Najskuteczniejsi gracze z chipem: {chip_names.get(chip, chip)}")
-                plt.tight_layout()
-                pdf.savefig()
-                plt.close()
+            if chip_df.empty:
+                continue
+            d = _aggregate_chip_chart(chip_df, chip)
+            plt.figure(figsize=(10, 6))
+            ax = sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette="cubehelix")
+            for i, v in enumerate(d["points"]):
+                if not pd.isna(v):
+                    ax.text(v + 0.5, i, f"{int(v)}", va="center")
+            plt.title(f"Najskuteczniejsi gracze: {CHIP_CHART_LABELS[chip]}")
+            plt.tight_layout()
+            pdf.savefig()
+            plt.close()
 
-        all_managers = df["entry_name"].unique()
+        for title_prefix, chip_set, value_col, mode in COMBINED_HALF_CHART_SPECS:
+            _plot_combined_chip_halves(pdf, df, title_prefix, chip_set, value_col, mode)
 
-        wc1_df = df[df["chip"] == "wildcard1"]
-        wc2_df = df[df["chip"] == "wildcard2"]
-        wc1_points = wc1_df.groupby("entry_name")["points"].sum()
-        wc2_points = wc2_df.groupby("entry_name")["points"].sum()
-        wildcards_points = pd.DataFrame(index=all_managers)
-        wildcards_points["Wildcard 1"] = wc1_points
-        wildcards_points["Wildcard 2"] = wc2_points
-        wildcards_points = wildcards_points.fillna(0).astype(int)
-
-        plt.figure(figsize=(10, 6))
-        sort_col = "Wildcard 1" if wildcards_points["Wildcard 1"].sum() > wildcards_points["Wildcard 2"].sum() else "Wildcard 2"
-        wildcards_sorted = wildcards_points.sort_values(sort_col, ascending=False)
-        ax = wildcards_sorted.plot(kind="barh", stacked=False, ax=plt.gca(), colormap="Set2")
-
-        for i, (index, row) in enumerate(wildcards_sorted.iterrows()):
-            wc1 = row["Wildcard 1"]
-            wc2 = row["Wildcard 2"]
-            if wc1 > 0:
-                ax.text(wc1 + 1, i - 0.2, str(wc1), va='center', fontsize=9)
-            if wc2 > 0:
-                ax.text(wc2 + 1, i + 0.2, str(wc2), va='center', fontsize=9)
-
-        plt.title("Wyniki graczy po użyciu Wildcard 1 i 2")
-        plt.tight_layout()
-        pdf.savefig()
-        plt.close()
+        _plot_combined_chip_halves(
+            pdf,
+            df,
+            "Wildcard",
+            {"wildcard1", "wildcard2"},
+            "points",
+            "sum",
+        )
 
         print(" 🔄 Generowanie sekcji nagród...")
 

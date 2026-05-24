@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 
+from fpl_chips import is_bench_boost_chip
 from fpl_generate_report_v3 import build_aggregates, load_data
 
 
@@ -16,7 +17,7 @@ def test_build_aggregates_aligns_by_entry_name(season_csv, mapping_json):
             df.groupby("entry_name")["bench"].mean()[name]
         )
 
-    non_bb = df[df["chip"] != "bboost"]
+    non_bb = df[~df["chip"].apply(is_bench_boost_chip)]
     expected_max_bench = non_bb.groupby("entry_name")["bench"].sum()
     for _, row in agg.iterrows():
         name = row["entry_name"]

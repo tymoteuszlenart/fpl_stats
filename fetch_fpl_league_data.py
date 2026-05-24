@@ -7,6 +7,8 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from fpl_chips import normalize_chip_activation
+
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
 LEAGUE_ID = os.getenv("FPL_LEAGUE_ID")
@@ -284,10 +286,8 @@ def get_league_entries(league_id):
 
 
 def normalize_wildcard_chip(chip, gw):
-    """Map API wildcard chip to wildcard1 (GW < 20) or wildcard2 (GW >= 20)."""
-    if chip == "wildcard":
-        return "wildcard1" if gw < 20 else "wildcard2"
-    return chip
+    """Backward-compatible alias for :func:`normalize_chip_activation`."""
+    return normalize_chip_activation(chip, gw)
 
 
 def get_manager_data(entry_id, gw):
@@ -344,9 +344,11 @@ def get_manager_data(entry_id, gw):
         captain_id = vice_captain_id
         captain_points = live_points.get(vice_captain_id, 0)
 
-    history = picks.get("entry_history", {})
-    automatic_subs = picks.get("automatic_subs", [])
-    chip = picks.get("active_chip", None)
+    history = picks.get("entry_history") or {}
+    automatic_subs = picks.get("automatic_subs") or []
+    chip = picks.get("active_chip")
+    if chip is None and isinstance(history, dict):
+        chip = history.get("active_chip") or history.get("chip")
 
     if chip == "bboost":
         bench_ids = [p["element"] for p in picks_data if p["position"] > 11]
@@ -427,12 +429,18 @@ def fetch_entry_gameweeks(
         except (FplRateLimitError, FplResponseError, FplApiError) as exc:
             print(f"  GW{gw}: błąd API — {exc}")
             continue
+        except KeyError as exc:
+            print(
+                f"  GW{gw}: nieoczekiwana struktura odpowiedzi API (brak pola {exc!s}) — pominięto"
+            )
+            continue
 
         data.update({
             "player_name": player_name,
             "entry_name": entry_name,
         })
-        data["chip"] = normalize_wildcard_chip(data["chip"], data["gw"])
+        gw_num = data.get("gw", gw)
+        data["chip"] = normalize_chip_activation(data.get("chip"), gw_num)
         rows.append(data)
         time.sleep(sleep_seconds)
     return rows

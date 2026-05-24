@@ -51,9 +51,11 @@ def test_optional_chip_awards_skipped_when_chip_unused():
         {**base, "gw": 20, "points": 55, "chip": None},
         {**base, "entry_name": "Other FC", "gw": 5, "chip": "wildcard1"},
     ])
-    assert df[df["chip"] == "bboost"].empty
-    assert df[df["chip"] == "3xc"].empty
-    assert df[df["chip"] == "freehit"].empty
+    from fpl_chips import BENCH_BOOST_CHIPS, FREE_HIT_CHIPS, TRIPLE_CAPTAIN_CHIPS
+
+    assert df[df["chip"].isin(BENCH_BOOST_CHIPS)].empty
+    assert df[df["chip"].isin(TRIPLE_CAPTAIN_CHIPS)].empty
+    assert df[df["chip"].isin(FREE_HIT_CHIPS)].empty
 
     agg, _ = build_aggregates(df)
     awards, _ = build_awards(df, agg, {})
