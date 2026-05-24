@@ -94,12 +94,25 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
    ```
    Optional env: `FPL_FETCH_MODE` (`finished`, `current`, or `full`), `FPL_MAX_GW`.
 
-5. Run script to generate reports:
+5. Refresh player ID → name mapping when needed (new season, transfers, or unknown names in awards):
+   ```bash
+   python map_players_name.py --fetch
+   ```
+   This downloads [bootstrap-static](https://fantasy.premierleague.com/api/bootstrap-static/) (no `.env` cookie required), updates `json/player_id_map.json`, and regenerates `json/player_id_mapped.json` using the same name sanitization as before.
+
+   To rebuild only `player_id_mapped.json` from an existing snapshot (offline):
+   ```bash
+   python map_players_name.py
+   ```
+
+   Re-run `--fetch` at the start of a new FPL season or when report awards show `Gracz #<id>` instead of a player name.
+
+6. Run script to generate reports:
    ```bash
    python fpl_generate_report_v3.py
    ```
 
-6. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
+7. The output PDFs, stats and awards, will be saved in the `fpl_output/` directory.
 
 ## Tests
 
@@ -126,7 +139,7 @@ CI runs `pytest` on push and pull requests to `main` (see `.github/workflows/tes
 |------|------|
 | `fetch_fpl_league_data.py`, `fpl_generate_report_v3.py`, `map_players_name.py` | Source scripts |
 | `img/`, `css/` | Committed assets for PDF/HTML reports |
-| `json/` | Player ID mapping templates (`player_id_map.json`, `player_id_mapped.json`) |
+| `json/` | Player ID mapping (`player_id_map.json` bootstrap snapshot, `player_id_mapped.json` sanitized names) — refresh with `python map_players_name.py --fetch` |
 | `csv/` | **Generated** — season data from the fetcher (e.g. `fpl_season_data.csv`); gitignored |
 | `fpl_output/` | **Generated** — PDF/HTML reports and charts; gitignored |
 | `.env` | **Local only** — API cookie and league id; gitignored |
