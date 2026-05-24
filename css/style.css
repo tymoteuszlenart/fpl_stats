@@ -51,8 +51,9 @@ body {
 }
 
 .emoji-icon {
-    width: 60px;
-    height: 60px;
+    font-size: 48px;
+    line-height: 1;
+    display: inline-block;
     vertical-align: middle;
     margin-right: 12px;
 }

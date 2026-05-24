@@ -35,6 +35,91 @@ def default_season_label():
     return f"{first_half_season_year}/{second_half_season_year}"
 
 
+def report_project_root():
+    """Absolute path to repo root (directory containing css/ and img/)."""
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+# Unicode icons for awards HTML (no external CDN; works offline in WeasyPrint).
+_AWARD_ICON_TROPHY = "🏆"
+_AWARD_ICON_SHIRT = "👕"
+_AWARD_ICON_TARGET = "🎯"
+_AWARD_ICON_CHART = "📊"
+
+
+def build_awards_html(awards, season):
+    """Build awards ceremony HTML using only local asset paths (css/, img/)."""
+    trophy = (
+        f'<span class="emoji-icon" role="img" aria-label="trofeum">{_AWARD_ICON_TROPHY}</span>'
+    )
+    shirt = (
+        f'<span class="emoji-icon" role="img" aria-label="koszulka">{_AWARD_ICON_SHIRT}</span>'
+    )
+    target = (
+        f'<span class="emoji-icon" role="img" aria-label="cel">{_AWARD_ICON_TARGET}</span>'
+    )
+    chart = (
+        f'<span class="emoji-icon" role="img" aria-label="wykres">{_AWARD_ICON_CHART}</span>'
+    )
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/style.css" />
+        <title>Ligowe Steczki - Nagrody</title>
+    </head>
+    <body>
+    <div class="cover">
+        {trophy}
+        <h1>Ligowe Steczki</h1>
+        <h2>Uroczyste Rozdanie Nagród</h2>
+        <div class="season">Sezon {season}</div>
+    </div>
+    """
+
+    for award in awards:
+        html += f"""
+        <div class="award">
+            <div class="title">
+                {trophy}
+                {award['Nagroda']}
+            </div>
+            <div class="label">
+                {shirt}
+                <strong>Drużyna:</strong> {award['Drużyna']}
+            </div>
+            <div class="label">
+                {target}
+                <strong>Za co:</strong> {award['Za co']}
+            </div>
+            <div class="label">
+                {chart}
+                <strong>Wartość:</strong> {award['Wartość']}
+            </div>
+            <img class="seal" src="img/seal.png" alt="">
+            <div class="signature">
+                <div class="sig-line">_________________________</div>
+                <div class="sig-title">Przewodniczący Komisji</div>
+                <div class="sig-sub">ds. Nagród Ligowych</div>
+                <div class="sig-org">FPL Steczek La Liga</div>
+            </div>
+            <div class="footer">Sezon {season}</div>
+        </div>
+        """
+
+    html += "</body></html>"
+    return html
+
+
+def write_awards_pdf(html, pdf_path, base_url=None):
+    """Render awards HTML to PDF using project-root asset resolution (no network)."""
+    if base_url is None:
+        base_url = report_project_root()
+    HTML(string=html, base_url=base_url).write_pdf(pdf_path)
+
+
 def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_mapped.json"):
     """Load season CSV and player ID mapping. Returns (df, id_to_name)."""
     print(f"🔄 Ładowanie danych z pliku {csv_path}...")
@@ -396,61 +481,14 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
 
         print(" 🔄 Generowanie sekcji nagród...")
 
-        html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="../css/style.css" />
-        <title>Ligowe Steczki - Nagrody</title>
-    </head>
-    <body>
-    <div class="cover">
-        <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
-        <h1>Ligowe Steczki</h1>
-        <h2>Uroczyste Rozdanie Nagród</h2>
-        <div class="season">Sezon {season}</div>
-    </div>
-    """
-
-        for award in awards:
-            html += f"""
-        <div class="award">
-            <div class="title">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/trophy_1f3c6.png" alt="trophy">
-                {award['Nagroda']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/t-shirt_1f455.png" alt="shirt">
-                <strong>Drużyna:</strong> {award['Drużyna']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/direct-hit_1f3af.png" alt="target">
-                <strong>Za co:</strong> {award['Za co']}
-            </div>
-            <div class="label">
-                <img class="emoji-icon" src="https://em-content.zobj.net/source/apple/391/bar-chart_1f4ca.png" alt="chart">
-                <strong>Wartość:</strong> {award['Wartość']}
-            </div>
-            <img class="seal" src="../img/seal.png">
-            <div class="signature">
-                <div class="sig-line">_________________________</div>
-                <div class="sig-title">Przewodniczący Komisji</div>
-                <div class="sig-sub">ds. Nagród Ligowych</div>
-                <div class="sig-org">FPL Steczek La Liga</div>
-            </div>
-            <div class="footer">Sezon {season}</div>
-        </div>
-        """
-
-        html += "</body></html>"
+        html = build_awards_html(awards, season)
 
         with open(awards_html_path, "w", encoding="utf-8") as f:
             f.write(html)
             print(f" ✅ Sekcja nagród wygenerowana. Zapisano jako {awards_html_path}")
 
         print(" 🔄 Generowanie PDF z sekcją nagród...")
-        HTML(awards_html_path).write_pdf(awards_pdf_path)
+        write_awards_pdf(html, awards_pdf_path, base_url=report_project_root())
         print(f" ✅ PDF z sekcją nagród zapisany jako {awards_pdf_path}")
 
         fig, ax = plt.subplots(figsize=(6, 12))
