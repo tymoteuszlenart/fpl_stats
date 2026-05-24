@@ -7,6 +7,8 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from fpl_chips import normalize_chip_activation
+
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
 LEAGUE_ID = os.getenv("FPL_LEAGUE_ID")
@@ -284,10 +286,8 @@ def get_league_entries(league_id):
 
 
 def normalize_wildcard_chip(chip, gw):
-    """Map API wildcard chip to wildcard1 (GW < 20) or wildcard2 (GW >= 20)."""
-    if chip == "wildcard":
-        return "wildcard1" if gw < 20 else "wildcard2"
-    return chip
+    """Backward-compatible alias for :func:`normalize_chip_activation`."""
+    return normalize_chip_activation(chip, gw)
 
 
 def get_manager_data(entry_id, gw):
@@ -432,7 +432,7 @@ def fetch_entry_gameweeks(
             "player_name": player_name,
             "entry_name": entry_name,
         })
-        data["chip"] = normalize_wildcard_chip(data["chip"], data["gw"])
+        data["chip"] = normalize_chip_activation(data["chip"], data["gw"])
         rows.append(data)
         time.sleep(sleep_seconds)
     return rows
