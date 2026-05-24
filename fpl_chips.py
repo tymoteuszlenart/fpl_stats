@@ -82,16 +82,26 @@ CHIP_SLOT_SHORT_LABELS = {
 }
 
 
+def used_season_chips(chip_series):
+    """Half-specific chip slots present in *chip_series*, in display order."""
+    used = set(chip_series.dropna()) & SEASON_CHIP_SLOTS
+    return [chip for chip in HALF_CHIP_ORDER if chip in used]
+
+
 def unused_season_chips(chip_series):
     """Half-specific chip slots not present in *chip_series* (2025/26, up to 8)."""
     used = set(chip_series.dropna()) & SEASON_CHIP_SLOTS
     return [chip for chip in HALF_CHIP_ORDER if chip not in used]
 
 
-def format_unused_chips_summary(unused_slots):
-    if not unused_slots:
+def format_chip_slots_summary(slots):
+    if not slots:
         return ""
-    return ", ".join(CHIP_SLOT_SHORT_LABELS.get(c, c) for c in unused_slots)
+    return ", ".join(CHIP_SLOT_SHORT_LABELS.get(c, c) for c in slots)
+
+
+def format_unused_chips_summary(unused_slots):
+    return format_chip_slots_summary(unused_slots)
 
 
 def season_chip_usage_by_entry(df):

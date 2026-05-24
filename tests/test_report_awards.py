@@ -95,6 +95,17 @@ def test_thrift_chip_award_2025_26_rules(season_csv, mapping_json):
     assert "3xC (I poł.)" in thrift["Za co"]
 
 
+def test_hoarder_chip_award_2025_26_rules(season_csv, mapping_json):
+    df, id_to_name = load_data(season_csv, mapping_json)
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, id_to_name)
+    hoarder = next(a for a in awards if a["Nagroda"] == "Bank chipów pusty nie będzie")
+    assert hoarder["Drużyna"] == "Beta City"
+    assert hoarder["Wartość"] == "2 razy (z 8)"
+    assert "użyte:" in hoarder["Za co"]
+    assert "3xC (I poł.)" in hoarder["Za co"]
+
+
 def test_thrift_chip_award_counts_half_specific_slots():
     from fpl_chips import MAX_CHIPS_PER_SEASON, season_chip_usage_by_entry
 
@@ -131,3 +142,33 @@ def test_thrift_chip_award_counts_half_specific_slots():
     thrift = next(a for a in awards if a["Nagroda"] == "Najoszczędniejszy gracz")
     assert thrift["Drużyna"] == "Saver"
     assert thrift["Wartość"] == "2 razy (z 8)"
+    hoarder = next(a for a in awards if a["Nagroda"] == "Bank chipów pusty nie będzie")
+    assert hoarder["Drużyna"] == "Hoarder"
+    assert hoarder["Wartość"] == "4 razy (z 8)"
+
+
+def test_hoarder_chip_award_skipped_when_no_chips_used():
+    team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
+    base = {
+        "points": 50,
+        "bench": 5,
+        "hits": 0,
+        "captain_points": 10,
+        "transfer_gain": 0,
+        "autosub_count": 0,
+        "event_transfers": 0,
+        "team": team,
+        "captain_id": 1,
+        "chip": None,
+    }
+    df = pd.DataFrame([
+        {**base, "entry_name": "A", "gw": 1},
+        {**base, "entry_name": "A", "gw": 25},
+        {**base, "entry_name": "B", "gw": 2},
+        {**base, "entry_name": "B", "gw": 26},
+    ])
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, {})
+    titles = _award_titles(awards)
+    assert "Najoszczędniejszy gracz" in titles
+    assert "Bank chipów pusty nie będzie" not in titles
