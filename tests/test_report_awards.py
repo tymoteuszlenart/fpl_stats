@@ -80,3 +80,54 @@ def test_best_gw_count_award_uses_razy(season_csv, mapping_json):
     awards, _ = build_awards(df, agg, id_to_name)
     best_gw = next(a for a in awards if a["Nagroda"] == "WSZYSCY SĄ W TYLE!!! NA CZELE")
     assert best_gw["Wartość"].endswith(" razy")
+
+
+def test_thrift_chip_award_2025_26_rules(season_csv, mapping_json):
+    df, id_to_name = load_data(season_csv, mapping_json)
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, id_to_name)
+    thrift = next(a for a in awards if a["Nagroda"] == "Najoszczędniejszy gracz")
+    assert thrift["Drużyna"] == "Zebra FC"
+    assert thrift["Wartość"] == "0 razy (z 8)"
+    assert "max 8" in thrift["Za co"]
+    assert "2025/26" in thrift["Za co"]
+    assert "nieużywane:" in thrift["Za co"]
+    assert "3xC (I poł.)" in thrift["Za co"]
+
+
+def test_thrift_chip_award_counts_half_specific_slots():
+    from fpl_chips import MAX_CHIPS_PER_SEASON, season_chip_usage_by_entry
+
+    team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
+    base = {
+        "points": 50,
+        "bench": 5,
+        "hits": 0,
+        "captain_points": 10,
+        "transfer_gain": 0,
+        "autosub_count": 0,
+        "event_transfers": 0,
+        "team": team,
+        "captain_id": 1,
+    }
+    df = pd.DataFrame([
+        {**base, "entry_name": "Saver", "gw": 5, "chip": "bboost"},
+        {**base, "entry_name": "Saver", "gw": 25, "chip": "bboost"},
+        {**base, "entry_name": "Hoarder", "gw": 1, "chip": "3xc1"},
+        {**base, "entry_name": "Hoarder", "gw": 5, "chip": "bboost1"},
+        {**base, "entry_name": "Hoarder", "gw": 10, "chip": "freehit1"},
+        {**base, "entry_name": "Hoarder", "gw": 21, "chip": "wildcard2"},
+    ])
+    from fpl_chips import normalize_chips_dataframe
+
+    df = normalize_chips_dataframe(df)
+    usage = season_chip_usage_by_entry(df)
+    assert usage["Saver"] == 2
+    assert usage["Hoarder"] == 4
+    assert MAX_CHIPS_PER_SEASON == 8
+
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, {})
+    thrift = next(a for a in awards if a["Nagroda"] == "Najoszczędniejszy gracz")
+    assert thrift["Drużyna"] == "Saver"
+    assert thrift["Wartość"] == "2 razy (z 8)"

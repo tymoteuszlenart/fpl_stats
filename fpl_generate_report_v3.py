@@ -17,9 +17,13 @@ from fpl_chips import (
     COMBINED_HALF_CHART_SPECS,
     FREE_HIT_CHIPS,
     HALF_CHIP_ORDER,
+    MAX_CHIPS_PER_SEASON,
     TRIPLE_CAPTAIN_CHIPS,
+    format_unused_chips_summary,
     is_bench_boost_chip,
     normalize_chips_dataframe,
+    season_chip_usage_by_entry,
+    unused_season_chips,
 )
 
 
@@ -202,15 +206,22 @@ def build_awards(df, agg, id_to_name):
     add_award("Najwyższy wynik ławki w sezonie", bench_max["entry_name"], f"GW{bench_max['gw']}", f'{bench_max["bench"]} pkt')
     add_award("Najniższy wynik ławki w sezonie", bench_min["entry_name"], f"GW{bench_min['gw']}", f'{bench_min["bench"]} pkt')
 
-    chips_used = df[df["chip"].notna()].groupby("entry_name")["chip"].count()
-    min_chips = chips_used.min()
-    min_chip_user = chips_used.idxmin()
+    chip_usage = season_chip_usage_by_entry(df)
+    min_chips = int(chip_usage.min())
+    min_chip_user = chip_usage.idxmin()
+    unused = unused_season_chips(df.loc[df["entry_name"] == min_chip_user, "chip"])
+    thrift_reason = (
+        f"Najmniej aktywacji chipów w sezonie "
+        f"(max {MAX_CHIPS_PER_SEASON}: po dwa BB, 3xC, FH i WC w 2025/26)"
+    )
+    if unused:
+        thrift_reason += f" — nieużywane: {format_unused_chips_summary(unused)}"
 
     add_award(
         "Najoszczędniejszy gracz",
         min_chip_user,
-        "Najmniej użytych chipów w sezonie",
-        f"{min_chips} chip/-ów"
+        thrift_reason,
+        f"{min_chips} razy (z {MAX_CHIPS_PER_SEASON})",
     )
 
     top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
