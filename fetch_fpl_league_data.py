@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from fpl_chips import normalize_chip_activation
+from fpl_chips import captain_contribution_multiplier, normalize_chip_activation
 
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
@@ -339,16 +339,19 @@ def get_manager_data(entry_id, gw):
         for p in team_with_points
     )
     if captain_played:
-        captain_points = live_points.get(captain_id, 0)
+        captain_raw_points = live_points.get(captain_id, 0)
     else:
         captain_id = vice_captain_id
-        captain_points = live_points.get(vice_captain_id, 0)
+        captain_raw_points = live_points.get(vice_captain_id, 0)
 
     history = picks.get("entry_history") or {}
     automatic_subs = picks.get("automatic_subs") or []
     chip = picks.get("active_chip")
     if chip is None and isinstance(history, dict):
         chip = history.get("active_chip") or history.get("chip")
+
+    cap_mult = captain_contribution_multiplier(chip)
+    captain_contribution_points = captain_raw_points * cap_mult
 
     if chip == "bboost":
         bench_ids = [p["element"] for p in picks_data if p["position"] > 11]
@@ -384,7 +387,9 @@ def get_manager_data(entry_id, gw):
         "chip": chip,
         "autosub_count": len(automatic_subs),
         "captain_id": captain_id,
-        "captain_points": captain_points,
+        "captain_raw_points": captain_raw_points,
+        "captain_contribution_points": captain_contribution_points,
+        "captain_points": captain_raw_points,
         "transfer_in_ids": in_ids,
         "transfer_out_ids": out_ids,
         "transfer_gain": transfer_gain,

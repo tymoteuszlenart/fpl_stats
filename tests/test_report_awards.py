@@ -30,6 +30,9 @@ def test_triple_captain_award_when_chip_used(season_csv, mapping_json):
     agg, _ = build_aggregates(df)
     awards, _ = build_awards(df, agg, id_to_name)
     assert "Salah czy nie Salah?" in _award_titles(awards)
+    tc = next(a for a in awards if a["Nagroda"] == "Salah czy nie Salah?")
+    assert tc["Drużyna"] == "Beta City"
+    assert tc["Wartość"] == "18 pkt"
 
 
 def test_optional_chip_awards_skipped_when_chip_unused():

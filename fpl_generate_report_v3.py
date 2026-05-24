@@ -18,6 +18,7 @@ from fpl_chips import (
     FREE_HIT_CHIPS,
     HALF_CHIP_ORDER,
     TRIPLE_CAPTAIN_CHIPS,
+    ensure_captain_columns,
     is_bench_boost_chip,
     normalize_chips_dataframe,
 )
@@ -37,6 +38,7 @@ def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_m
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"Plik {csv_path} nie został znaleziony") from exc
     df = normalize_chips_dataframe(df)
+    df = ensure_captain_columns(df)
     print(f"✅ Załadowano dane z pliku {csv_path}")
 
     print(f"🔄 Ładowanie danych z pliku {mapping_path}...")
@@ -53,13 +55,14 @@ def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_m
 
 def build_aggregates(df):
     """Build per-manager season aggregates. Returns (agg, num_gw)."""
+    df = ensure_captain_columns(df)
     num_gw = df["gw"].nunique()
 
     agg = df.groupby("entry_name").agg({
         "points": "sum",
         "bench": "sum",
         "hits": "sum",
-        "captain_points": "sum",
+        "captain_contribution_points": "sum",
         "transfer_gain": "sum",
         "autosub_count": "sum",
         "event_transfers": "sum"
@@ -96,15 +99,16 @@ def build_aggregates(df):
 
 def build_awards(df, agg, id_to_name):
     """Compute league awards and top-captain table. Returns (awards, top_captains)."""
+    df = ensure_captain_columns(df)
     awards = []
 
     def add_award(title, team, reason, value):
         awards.append({"Nagroda": title, "Drużyna": team, "Za co": reason, "Wartość": value})
 
     add_award("Kto na kapitanie?",
-              agg.sort_values("captain_points", ascending=False).iloc[0]["entry_name"],
-              "Najwięcej punktów z kapitana",
-              f'{int(agg["captain_points"].max())} pkt')
+              agg.sort_values("captain_contribution_points", ascending=False).iloc[0]["entry_name"],
+              "Najwięcej punktów z kapitana (z bonusem 2×/3×)",
+              f'{int(agg["captain_contribution_points"].max())} pkt')
 
     add_award("Mykolenko pierwsza asysta w życiu a ja...",
               agg.sort_values("max_bench_points", ascending=False).iloc[0]["entry_name"],
@@ -166,11 +170,11 @@ def build_awards(df, agg, id_to_name):
 
     tc = df[df["chip"].isin(TRIPLE_CAPTAIN_CHIPS)]
     if not tc.empty:
-        best_tc = tc.sort_values("captain_points", ascending=False).iloc[0]
+        best_tc = tc.sort_values("captain_contribution_points", ascending=False).iloc[0]
         add_award("Salah czy nie Salah?",
                   best_tc["entry_name"],
                   f"Najlepsze pojedyncze 3xC (GW {int(best_tc['gw'])})",
-                  f"{int(best_tc['captain_points']) * 3} pkt")
+                  f"{int(best_tc['captain_contribution_points'])} pkt")
 
     df["prev_points"] = df.sort_values(["entry_name", "gw"]).groupby("entry_name")["points"].shift(1)
     fh = df[df["chip"].isin(FREE_HIT_CHIPS)]
@@ -213,16 +217,20 @@ def build_awards(df, agg, id_to_name):
         f"{min_chips} chip/-ów"
     )
 
-    top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
-    top_captains = top_captains.sort_values("captain_points", ascending=False).head(30)
+    top_captains = df.groupby(["entry_name", "captain_id"])["captain_contribution_points"].max().reset_index()
+    top_captains = top_captains.sort_values("captain_contribution_points", ascending=False).head(30)
     top_captains["captain_name"] = top_captains["captain_id"].map(id_to_name).fillna(top_captains["captain_id"].astype(str))
-    idx = df.groupby(["entry_name", "captain_id"])["captain_points"].idxmax()
-    top_captain_rows = df.loc[idx, ["entry_name", "captain_id", "captain_points", "gw"]]
-    top_captains = top_captains.merge(top_captain_rows, on=["entry_name", "captain_id", "captain_points"], how="left")
+    idx = df.groupby(["entry_name", "captain_id"])["captain_contribution_points"].idxmax()
+    top_captain_rows = df.loc[idx, ["entry_name", "captain_id", "captain_contribution_points", "gw"]]
+    top_captains = top_captains.merge(
+        top_captain_rows,
+        on=["entry_name", "captain_id", "captain_contribution_points"],
+        how="left",
+    )
     top_captains["desc"] = (
         top_captains["entry_name"] + " – " +
         top_captains["captain_name"] + " – " +
-        top_captains["captain_points"].astype(int).astype(str) + " pkt - " +
+        top_captains["captain_contribution_points"].astype(int).astype(str) + " pkt - " +
         "GW" + top_captains["gw"].astype(str)
     )
 
@@ -232,9 +240,8 @@ def build_awards(df, agg, id_to_name):
 def _aggregate_chip_chart(chip_df, chip):
     """Per-manager metric for a single half-specific chip (best single GW)."""
     if chip.startswith("3xc"):
-        out = chip_df.groupby("entry_name")["captain_points"].max().reset_index()
-        out = out.rename(columns={"captain_points": "points"})
-        out["points"] *= 3
+        out = chip_df.groupby("entry_name")["captain_contribution_points"].max().reset_index()
+        out = out.rename(columns={"captain_contribution_points": "points"})
     elif chip.startswith("bboost"):
         out = chip_df.groupby("entry_name")["bench"].max().reset_index()
         out = out.rename(columns={"bench": "points"})
@@ -247,8 +254,6 @@ def _half_combined_series(df, half_chips, value_col, mode):
     chip_df = df[df["chip"].isin(half_chips)]
     if chip_df.empty:
         return pd.Series(dtype=float)
-    if mode == "max_triple":
-        return chip_df.groupby("entry_name")["captain_points"].max() * 3
     if mode == "sum":
         return chip_df.groupby("entry_name")[value_col].sum()
     return chip_df.groupby("entry_name")[value_col].max()
@@ -312,7 +317,7 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
         plt.rcParams.update({'axes.titlesize': 16})
 
         for col, title, palette in [
-            ("captain_points", "Punkty kapitanów I", "flare"),
+            ("captain_contribution_points", "Punkty kapitanów (2×/3×) I", "flare"),
             ("avg_gw_points", "Średnia punktowa", "viridis"),
             ("efficiency", "Ranking efektywności", "cividis"),
             ("bench", "Punkty zawodników na ławce I", "rocket"),
