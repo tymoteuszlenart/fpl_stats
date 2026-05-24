@@ -38,6 +38,8 @@ COMBINED_HALF_CHART_SPECS = (
 
 def normalize_chip_activation(chip, gw):
     """Map API chip to half-specific id (GW < 20 → *1, GW >= 20 → *2)."""
+    if chip is None:
+        return None
     if chip in SPLITTABLE_CHIPS:
         half = 1 if gw < CHIP_HALF_SPLIT_GW else 2
         return f"{chip}{half}"
