@@ -134,3 +134,34 @@ def season_chip_usage_by_entry(df):
         .nunique()
     )
     return used.reindex(entries, fill_value=0).astype(int)
+
+
+def _activation_return_for_chip_group(group, chip):
+    """Points credited to one half-specific chip slot (matches chart semantics)."""
+    if chip.startswith("wildcard"):
+        return float(group["points"].sum())
+    if chip.startswith("bboost"):
+        return float(group["bench"].max())
+    if chip.startswith("3xc"):
+        return float(group["captain_contribution_points"].max())
+    return float(group["points"].max())
+
+
+def season_chip_total_return_by_entry(df):
+    """Per manager: sum of chip-appropriate returns across all activations (0 if none)."""
+    entries = pd.Index(df["entry_name"].unique())
+    chip_df = df.loc[df["chip"].isin(SEASON_CHIP_SLOTS)]
+    if chip_df.empty:
+        return pd.Series(0.0, index=entries, dtype=float)
+    per_activation = chip_df.groupby(["entry_name", "chip"], sort=False).apply(
+        lambda g: _activation_return_for_chip_group(g, g.name[1]),
+    )
+    totals = per_activation.groupby(level=0).sum()
+    return totals.reindex(entries, fill_value=0.0).astype(float)
+
+
+def season_chip_efficiency_by_entry(df):
+    """Per manager: total chip return / activations; NaN where no chips were used."""
+    usage = season_chip_usage_by_entry(df)
+    totals = season_chip_total_return_by_entry(df)
+    return totals.divide(usage.where(usage > 0))

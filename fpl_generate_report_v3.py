@@ -24,6 +24,8 @@ from fpl_chips import (
     format_unused_chips_summary,
     is_bench_boost_chip,
     normalize_chips_dataframe,
+    season_chip_efficiency_by_entry,
+    season_chip_total_return_by_entry,
     season_chip_usage_by_entry,
     unused_season_chips,
     used_season_chips,
@@ -334,6 +336,42 @@ def build_awards(df, agg, id_to_name):
             hoarder_reason,
             f"{max_chips} razy (z {MAX_CHIPS_PER_SEASON})",
         )
+
+    chip_returns = season_chip_total_return_by_entry(df)
+    chip_efficiency = season_chip_efficiency_by_entry(df)
+    eligible = chip_usage[chip_usage >= 1]
+    if not eligible.empty:
+        eff_eligible = chip_efficiency.loc[eligible.index]
+        best_eff_val = eff_eligible.max()
+        best_candidates = eff_eligible[eff_eligible == best_eff_val].index
+        best_eff_idx = chip_usage.loc[best_candidates].idxmin()
+        best_usage = int(chip_usage.loc[best_eff_idx])
+        best_return = int(chip_returns.loc[best_eff_idx])
+        add_award(
+            "Chipy się zwracają",
+            best_eff_idx,
+            (
+                f"Najwyższy zwrot z chipów w sezonie {chip_rules} "
+                f"(suma pkt z aktywacji / liczba aktywacji; remis → mniej aktywacji)"
+            ),
+            f"{chip_efficiency.loc[best_eff_idx]:.1f} pkt/aktywacja ({best_return} pkt, {best_usage} aktyw.)",
+        )
+
+        worst_eff_val = eff_eligible.min()
+        worst_candidates = eff_eligible[eff_eligible == worst_eff_val].index
+        worst_eff_idx = chip_usage.loc[worst_candidates].idxmax()
+        worst_usage = int(chip_usage.loc[worst_eff_idx])
+        worst_return = int(chip_returns.loc[worst_eff_idx])
+        if worst_eff_idx != best_eff_idx or chip_efficiency.loc[worst_eff_idx] < chip_efficiency.loc[best_eff_idx]:
+            add_award(
+                "Złoty chip, miedziany wynik",
+                worst_eff_idx,
+                (
+                    f"Najniższy zwrot z chipów w sezonie {chip_rules} "
+                    f"(tylko gracze z ≥1 aktywacją; remis → więcej aktywacji)"
+                ),
+                f"{chip_efficiency.loc[worst_eff_idx]:.1f} pkt/aktywacja ({worst_return} pkt, {worst_usage} aktyw.)",
+            )
 
     top_captains = df.groupby(["entry_name", "captain_id"])["captain_contribution_points"].max().reset_index()
     top_captains = top_captains.sort_values("captain_contribution_points", ascending=False).head(30)

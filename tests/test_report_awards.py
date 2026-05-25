@@ -150,6 +150,111 @@ def test_thrift_chip_award_counts_half_specific_slots():
     assert hoarder["Wartość"] == "4 razy (z 8)"
 
 
+def test_best_chip_efficiency_award_2025_26(season_csv, mapping_json):
+    df, id_to_name = load_data(season_csv, mapping_json)
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, id_to_name)
+    best = next(a for a in awards if a["Nagroda"] == "Chipy się zwracają")
+    assert best["Drużyna"] == "Gamma Rovers"
+    assert best["Wartość"] == "85.0 pkt/aktywacja (170 pkt, 2 aktyw.)"
+    assert "pkt/aktywacja" in best["Wartość"]
+    assert "2025/26" in best["Za co"]
+
+
+def test_worst_chip_efficiency_award_2025_26(season_csv, mapping_json):
+    df, id_to_name = load_data(season_csv, mapping_json)
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, id_to_name)
+    worst = next(a for a in awards if a["Nagroda"] == "Złoty chip, miedziany wynik")
+    assert worst["Drużyna"] == "Alpha United"
+    assert worst["Wartość"] == "6.0 pkt/aktywacja (6 pkt, 1 aktyw.)"
+
+
+def test_chip_efficiency_awards_skipped_when_no_chips_used():
+    team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
+    base = {
+        "points": 50,
+        "bench": 5,
+        "hits": 0,
+        "captain_points": 10,
+        "transfer_gain": 0,
+        "autosub_count": 0,
+        "event_transfers": 0,
+        "team": team,
+        "captain_id": 1,
+        "chip": None,
+    }
+    df = pd.DataFrame([
+        {**base, "entry_name": "A", "gw": 1},
+        {**base, "entry_name": "A", "gw": 25},
+        {**base, "entry_name": "B", "gw": 2},
+        {**base, "entry_name": "B", "gw": 26},
+    ])
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, {})
+    titles = _award_titles(awards)
+    assert "Chipy się zwracają" not in titles
+    assert "Złoty chip, miedziany wynik" not in titles
+
+
+def test_best_chip_efficiency_tiebreak_fewer_activations():
+    team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
+    base = {
+        "points": 50,
+        "bench": 10,
+        "hits": 0,
+        "captain_points": 10,
+        "captain_raw_points": 10,
+        "captain_contribution_points": 20,
+        "transfer_gain": 0,
+        "autosub_count": 0,
+        "event_transfers": 0,
+        "team": team,
+        "captain_id": 1,
+    }
+    df = pd.DataFrame([
+        {**base, "entry_name": "One", "gw": 5, "chip": "bboost1"},
+        {**base, "entry_name": "One", "gw": 25, "chip": None},
+        {**base, "entry_name": "Two", "gw": 1, "chip": "3xc1", "captain_contribution_points": 20},
+        {**base, "entry_name": "Two", "gw": 10, "chip": "freehit1", "points": 0},
+        {**base, "entry_name": "Two", "gw": 26, "chip": None},
+    ])
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, {})
+    best = next(a for a in awards if a["Nagroda"] == "Chipy się zwracają")
+    assert best["Drużyna"] == "One"
+    assert best["Wartość"] == "10.0 pkt/aktywacja (10 pkt, 1 aktyw.)"
+
+
+def test_worst_chip_efficiency_tiebreak_more_activations():
+    team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
+    base = {
+        "points": 40,
+        "bench": 4,
+        "hits": 0,
+        "captain_points": 8,
+        "captain_raw_points": 8,
+        "captain_contribution_points": 16,
+        "transfer_gain": 0,
+        "autosub_count": 0,
+        "event_transfers": 0,
+        "team": team,
+        "captain_id": 1,
+    }
+    df = pd.DataFrame([
+        {**base, "entry_name": "Low", "gw": 5, "chip": "bboost1", "bench": 8},
+        {**base, "entry_name": "Low", "gw": 25, "chip": None},
+        {**base, "entry_name": "Also", "gw": 1, "chip": "3xc1", "captain_contribution_points": 16},
+        {**base, "entry_name": "Also", "gw": 10, "chip": "freehit1", "points": 0},
+        {**base, "entry_name": "Also", "gw": 26, "chip": None},
+    ])
+    agg, _ = build_aggregates(df)
+    awards, _ = build_awards(df, agg, {})
+    worst = next(a for a in awards if a["Nagroda"] == "Złoty chip, miedziany wynik")
+    assert worst["Drużyna"] == "Also"
+    assert worst["Wartość"] == "8.0 pkt/aktywacja (16 pkt, 2 aktyw.)"
+
+
 def test_hoarder_chip_award_skipped_when_no_chips_used():
     team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
     base = {
