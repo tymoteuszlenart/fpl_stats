@@ -1,9 +1,9 @@
-gw,points,bench,hits,captain_points,captain_raw_points,captain_contribution_points,transfer_gain,autosub_count,event_transfers,chip,entry_name,captain_id,team
-1,50,8,0,12,12,24,0,0,0,,Zebra FC,1,"[{'player_id': 1, 'multiplier': 2, 'points': 6}, {'player_id': 2, 'multiplier': 1, 'points': 4}]"
-2,60,10,0,14,14,28,0,1,1,,Zebra FC,1,"[{'player_id': 1, 'multiplier': 2, 'points': 7}, {'player_id': 2, 'multiplier': 1, 'points': 5}]"
-1,55,6,4,10,10,20,2,0,0,bboost,Alpha United,2,"[{'player_id': 2, 'multiplier': 2, 'points': 8}, {'player_id': 1, 'multiplier': 1, 'points': 3}]"
-2,45,5,0,8,8,16,0,0,0,,Alpha United,2,"[{'player_id': 2, 'multiplier': 2, 'points': 4}, {'player_id': 1, 'multiplier': 1, 'points': 2}]"
-1,40,4,0,6,6,18,0,0,0,3xc,Beta City,100,"[{'player_id': 100, 'multiplier': 2, 'points': 6}, {'player_id': 1, 'multiplier': 1, 'points': 2}]"
-2,70,12,0,20,20,40,0,2,2,freehit,Beta City,100,"[{'player_id': 100, 'multiplier': 2, 'points': 10}, {'player_id': 2, 'multiplier': 1, 'points': 5}]"
-10,80,15,0,16,16,32,0,0,0,wildcard1,Gamma Rovers,3,"[{'player_id': 3, 'multiplier': 2, 'points': 8}, {'player_id': 1, 'multiplier': 1, 'points': 4}]"
-25,90,18,0,18,18,36,0,0,0,wildcard2,Gamma Rovers,3,"[{'player_id': 3, 'multiplier': 2, 'points': 9}, {'player_id': 2, 'multiplier': 1, 'points': 5}]"
+gw,points,bench,hits,captain_points,captain_raw_points,captain_contribution_points,transfer_gain,autosub_count,event_transfers,chip,entry_name,captain_id
+1,50,8,0,12,12,24,0,0,0,,Zebra FC,1
+2,60,10,0,14,14,28,0,1,1,,Zebra FC,1
+1,55,6,4,10,10,20,2,0,0,bboost,Alpha United,2
+2,45,5,0,8,8,16,0,0,0,,Alpha United,2
+1,40,4,0,6,6,18,0,0,0,3xc,Beta City,100
+2,70,12,0,20,20,40,0,2,2,freehit,Beta City,100
+10,80,15,0,16,16,32,0,0,0,wildcard1,Gamma Rovers,3
+25,90,18,0,18,18,36,0,0,0,wildcard2,Gamma Rovers,3

@@ -8,6 +8,7 @@ import requests
 from dotenv import load_dotenv
 
 from fpl_chips import captain_contribution_multiplier, normalize_chip_activation
+from fpl_season_storage import write_season_csv_and_picks
 
 load_dotenv()
 COOKIE = os.getenv("FPL_COOKIE")
@@ -515,9 +516,9 @@ def main(argv=None):
         all_data.extend(rows)
 
     out_path = args.output
-    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    pd.DataFrame(all_data).to_csv(out_path, index=False)
+    picks_path = write_season_csv_and_picks(all_data, out_path)
     print(f"Zapisano dane do {out_path}")
+    print(f"Zapisano wybory drużyn do {picks_path}")
 
 
 if __name__ == "__main__":
