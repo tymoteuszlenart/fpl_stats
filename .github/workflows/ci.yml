@@ -29,9 +29,16 @@ jobs:
           python -m py_compile \
             fpl_generate_report_v3.py \
             fetch_fpl_league_data.py \
-            fpl_api.py \
-            fetcher.py \
-            map_players_name.py
+            map_players_name.py \
+            fpl_stats/__init__.py \
+            fpl_stats/api.py \
+            fpl_stats/aggregates.py \
+            fpl_stats/awards.py \
+            fpl_stats/chips.py \
+            fpl_stats/data_loader.py \
+            fpl_stats/fetcher.py \
+            fpl_stats/report.py \
+            fpl_stats/season_storage.py
 
       - name: Run pytest
         run: |

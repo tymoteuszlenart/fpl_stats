@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from fpl_season_storage import (
+from fpl_stats.season_storage import (
     load_season_dataframe,
     parse_team_cell,
     picks_path_for_season_csv,

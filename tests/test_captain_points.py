@@ -1,7 +1,7 @@
 import pandas as pd
 
-from fpl_chips import captain_contribution_multiplier, ensure_captain_columns
-from fpl_generate_report_v3 import build_awards, build_aggregates
+from fpl_stats.chips import captain_contribution_multiplier, ensure_captain_columns
+from fpl_stats import build_awards, build_aggregates
 
 
 def test_legacy_csv_backfills_contribution_from_raw():

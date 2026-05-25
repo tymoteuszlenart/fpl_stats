@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from fpl_chips import is_bench_boost_chip
-from fpl_generate_report_v3 import build_aggregates, load_data
+from fpl_stats.chips import is_bench_boost_chip
+from fpl_stats import build_aggregates, load_data
 
 
 def test_build_aggregates_aligns_by_entry_name(season_csv, mapping_json):
