@@ -1,7 +1,7 @@
 import pandas as pd
 
-from fpl_chips import normalize_chips_dataframe
-from fpl_generate_report_v3 import build_awards, build_aggregates
+from fpl_stats.chips import normalize_chips_dataframe
+from fpl_stats import build_awards, build_aggregates
 
 
 def test_legacy_unsuffixed_chips_split_by_gameweek():

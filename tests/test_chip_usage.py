@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from fpl_chips import (
+from fpl_stats.chips import (
     MAX_CHIPS_PER_SEASON,
     format_chip_slots_summary,
     format_unused_chips_summary,

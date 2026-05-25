@@ -2,11 +2,11 @@
 
 import argparse
 import os
+import sys
 
 from dotenv import load_dotenv
 
-from fetcher import fetch_entry_gameweeks
-from fpl_api import (
+from fpl_stats.api import (
     COOKIE,
     FplApiError,
     FplAuthError,
@@ -14,7 +14,8 @@ from fpl_api import (
     get_bootstrap_events,
     get_league_entries,
 )
-from fpl_season_storage import write_season_csv_and_picks
+from fpl_stats.fetcher import fetch_entry_gameweeks
+from fpl_stats.season_storage import write_season_csv_and_picks
 
 load_dotenv()
 LEAGUE_ID = os.getenv("FPL_LEAGUE_ID")
@@ -225,4 +226,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

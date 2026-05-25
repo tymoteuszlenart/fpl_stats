@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from fpl_generate_report_v3 import build_awards, build_aggregates, load_data, player_display_name
+from fpl_stats import build_awards, build_aggregates, load_data, player_display_name
 from map_players_name import build_mapped_players, refresh_from_local_map, sanitize_web_name
 
 

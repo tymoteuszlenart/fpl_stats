@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from fetcher import get_manager_data
+from fpl_stats.fetcher import get_manager_data
 
 
 def _picks_payload(*, captain_id, vice_id, captain_multiplier, chip=None, bench_positions=None):
@@ -43,7 +43,7 @@ def _live_payload(player_points):
     }
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_captain_played_uses_captain_points(mock_get):
     captain_id, vice_id = 1, 2
     mock_get.side_effect = [
@@ -57,7 +57,7 @@ def test_captain_played_uses_captain_points(mock_get):
     assert row["captain_points"] == 10
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_captain_dnp_uses_vice_captain(mock_get):
     captain_id, vice_id = 1, 2
     mock_get.side_effect = [
@@ -71,7 +71,7 @@ def test_captain_dnp_uses_vice_captain(mock_get):
     assert row["captain_points"] == 8
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_triple_captain_applies_3x_contribution(mock_get):
     captain_id, vice_id = 1, 2
     mock_get.side_effect = [
@@ -88,7 +88,7 @@ def test_triple_captain_applies_3x_contribution(mock_get):
     assert row["captain_contribution_points"] == 36
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_bench_boost_sums_bench_players_not_points_on_bench(mock_get):
     captain_id, vice_id = 1, 2
     mock_get.side_effect = [
@@ -108,7 +108,7 @@ def test_bench_boost_sums_bench_players_not_points_on_bench(mock_get):
     assert row["bench"] != 7
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_non_bench_boost_uses_points_on_bench(mock_get):
     captain_id, vice_id = 1, 2
     mock_get.side_effect = [
@@ -119,7 +119,7 @@ def test_non_bench_boost_uses_points_on_bench(mock_get):
     assert row["bench"] == 7
 
 
-@patch("fetcher.fpl_get")
+@patch("fpl_stats.fetcher.fpl_get")
 def test_null_entry_history_still_returns_chip_key(mock_get):
     captain_id, vice_id = 1, 2
     payload = _picks_payload(

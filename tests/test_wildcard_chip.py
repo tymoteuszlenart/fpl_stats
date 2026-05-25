@@ -1,6 +1,6 @@
 import pytest
 
-from fpl_chips import normalize_chip_activation
+from fpl_stats.chips import normalize_chip_activation
 
 
 @pytest.mark.parametrize(
@@ -25,6 +25,6 @@ def test_normalize_chip_activation(chip, gw, expected):
 
 
 def test_normalize_wildcard_chip_alias():
-    from fetcher import normalize_wildcard_chip
+    from fpl_stats.fetcher import normalize_wildcard_chip
 
     assert normalize_wildcard_chip("wildcard", 20) == "wildcard2"

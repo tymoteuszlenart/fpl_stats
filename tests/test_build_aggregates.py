@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from fpl_generate_report_v3 import build_aggregates
+from fpl_stats import build_aggregates
 
 
 def _minimal_season_df(rows):

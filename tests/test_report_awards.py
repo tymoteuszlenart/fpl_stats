@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from fpl_generate_report_v3 import build_awards, build_aggregates, load_data, run_report
+from fpl_stats import build_awards, build_aggregates, load_data, run_report
 
 
 def _award_titles(awards):
@@ -54,7 +54,7 @@ def test_optional_chip_awards_skipped_when_chip_unused():
         {**base, "gw": 20, "points": 55, "chip": None},
         {**base, "entry_name": "Other FC", "gw": 5, "chip": "wildcard1"},
     ])
-    from fpl_chips import BENCH_BOOST_CHIPS, FREE_HIT_CHIPS, TRIPLE_CAPTAIN_CHIPS
+    from fpl_stats.chips import BENCH_BOOST_CHIPS, FREE_HIT_CHIPS, TRIPLE_CAPTAIN_CHIPS
 
     assert df[df["chip"].isin(BENCH_BOOST_CHIPS)].empty
     assert df[df["chip"].isin(TRIPLE_CAPTAIN_CHIPS)].empty
@@ -110,7 +110,7 @@ def test_hoarder_chip_award_2025_26_rules(season_csv, mapping_json):
 
 
 def test_thrift_chip_award_counts_half_specific_slots():
-    from fpl_chips import MAX_CHIPS_PER_SEASON, season_chip_usage_by_entry
+    from fpl_stats.chips import MAX_CHIPS_PER_SEASON, season_chip_usage_by_entry
 
     team = "[{'player_id': 1, 'multiplier': 2, 'points': 6}]"
     base = {
@@ -132,7 +132,7 @@ def test_thrift_chip_award_counts_half_specific_slots():
         {**base, "entry_name": "Hoarder", "gw": 10, "chip": "freehit1"},
         {**base, "entry_name": "Hoarder", "gw": 21, "chip": "wildcard2"},
     ])
-    from fpl_chips import normalize_chips_dataframe
+    from fpl_stats.chips import normalize_chips_dataframe
 
     df = normalize_chips_dataframe(df)
     usage = season_chip_usage_by_entry(df)

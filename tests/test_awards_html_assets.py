@@ -2,7 +2,7 @@
 
 import os
 
-from fpl_generate_report_v3 import build_awards_html, report_project_root
+from fpl_stats.report import build_awards_html, report_project_root
 
 
 def test_awards_html_uses_local_assets_only():
