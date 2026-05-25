@@ -29,6 +29,8 @@ jobs:
           python -m py_compile \
             fpl_generate_report_v3.py \
             fetch_fpl_league_data.py \
+            fpl_api.py \
+            fetcher.py \
             map_players_name.py
 
       - name: Run pytest

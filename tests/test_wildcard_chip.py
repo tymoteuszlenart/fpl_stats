@@ -25,6 +25,6 @@ def test_normalize_chip_activation(chip, gw, expected):
 
 
 def test_normalize_wildcard_chip_alias():
-    from fetch_fpl_league_data import normalize_wildcard_chip
+    from fetcher import normalize_wildcard_chip
 
     assert normalize_wildcard_chip("wildcard", 20) == "wildcard2"
