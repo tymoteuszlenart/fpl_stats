@@ -35,6 +35,13 @@ def default_season_label():
     return f"{first_half_season_year}/{second_half_season_year}"
 
 
+def player_display_name(player_id, id_to_name):
+    """Resolve FPL element id to display name; unknown ids get a stable fallback."""
+    if player_id in id_to_name:
+        return id_to_name[player_id]
+    return f"Gracz #{player_id}"
+
+
 def report_project_root():
     """Absolute path to repo root (directory containing css/ and img/)."""
     return os.path.dirname(os.path.abspath(__file__))
@@ -277,7 +284,7 @@ def build_awards(df, agg, id_to_name):
     picked_starting = all_picked[all_picked.apply(lambda p: p["multiplier"] > 0 if isinstance(p, dict) else False)]
     counts = Counter([p["player_id"] for p in picked_starting])
     top_player_id, top_count = counts.most_common(1)[0]
-    top_player_name = id_to_name.get(top_player_id, str(top_player_id))
+    top_player_name = player_display_name(top_player_id, id_to_name)
 
     add_award("Bez niego ani rusz",
               top_player_name,
@@ -327,7 +334,9 @@ def build_awards(df, agg, id_to_name):
 
     top_captains = df.groupby(["entry_name", "captain_id"])["captain_points"].max().reset_index()
     top_captains = top_captains.sort_values("captain_points", ascending=False).head(30)
-    top_captains["captain_name"] = top_captains["captain_id"].map(id_to_name).fillna(top_captains["captain_id"].astype(str))
+    top_captains["captain_name"] = top_captains["captain_id"].apply(
+        lambda pid: player_display_name(pid, id_to_name)
+    )
     idx = df.groupby(["entry_name", "captain_id"])["captain_points"].idxmax()
     top_captain_rows = df.loc[idx, ["entry_name", "captain_id", "captain_points", "gw"]]
     top_captains = top_captains.merge(top_captain_rows, on=["entry_name", "captain_id", "captain_points"], how="left")
