@@ -47,7 +47,7 @@ Use this file for **every** Cloud Agent run on this repo. Each run should implem
 
 ### Data
 
-- Season input: `csv/fpl_season_data.csv` (often gitignored; tests use fixtures).
+- Season input: `csv/fpl_season_data.csv` + `csv/fpl_season_picks.csv` (often gitignored; tests use fixtures). Legacy single-file CSV with embedded `team` strings still loads.
 - Player IDs: `json/player_id_mapped.json`, `json/player_id_map.json`.
 - Outputs: `fpl_output/` (reports, charts) — do not commit unless an issue requires it.
 

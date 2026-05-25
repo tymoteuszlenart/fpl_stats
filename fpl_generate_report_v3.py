@@ -2,7 +2,6 @@
 import argparse
 import datetime
 import os
-from ast import literal_eval
 from collections import Counter
 
 import matplotlib.pyplot as plt
@@ -11,6 +10,7 @@ import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 from weasyprint import HTML
 
+from fpl_season_storage import load_season_dataframe, team_lists_series
 from fpl_chips import (
     BENCH_BOOST_CHIPS,
     CHIP_CHART_LABELS,
@@ -132,7 +132,7 @@ def load_data(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_m
     """Load season CSV and player ID mapping. Returns (df, id_to_name)."""
     print(f"🔄 Ładowanie danych z pliku {csv_path}...")
     try:
-        df = pd.read_csv(csv_path)
+        df = load_season_dataframe(csv_path)
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"Plik {csv_path} nie został znaleziony") from exc
     df = normalize_chips_dataframe(df)
@@ -283,8 +283,7 @@ def build_awards(df, agg, id_to_name):
                   f"Najlepsze pojedyncze Free Hit (GW {int(best_fh['gw'])})",
                   f"{int(best_fh['points'])} pkt")
 
-    df["team_list"] = df["team"].dropna().apply(literal_eval)
-    all_picked = df["team_list"].explode()
+    all_picked = team_lists_series(df).dropna().explode()
     picked_starting = all_picked[all_picked.apply(lambda p: p["multiplier"] > 0 if isinstance(p, dict) else False)]
     counts = Counter([p["player_id"] for p in picked_starting])
     top_player_id, top_count = counts.most_common(1)[0]

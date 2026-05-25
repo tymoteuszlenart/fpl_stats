@@ -128,6 +128,12 @@ See [WeasyPrint first steps](https://doc.courtbouillon.org/weasyprint/stable/fir
    python fetch_fpl_league_data.py
    ```
 
+   This writes two files under `csv/`:
+   - `fpl_season_data.csv` — one row per manager per gameweek (points, chips, captain, etc.; no embedded squad lists)
+   - `fpl_season_picks.csv` — normalized picks (one row per manager / GW / player: `player_id`, `multiplier`, `points`)
+
+   Older exports that still embed `team` as a string in the main CSV remain supported when the picks file is missing.
+
    By default only **finished** gameweeks are fetched (from FPL `bootstrap-static` metadata). Other ranges:
    ```bash
    python fetch_fpl_league_data.py --through-current   # GW 1 through current
@@ -182,7 +188,7 @@ CI runs `pytest` on push and pull requests to `main` (see `.github/workflows/tes
 | `fetch_fpl_league_data.py`, `fpl_generate_report_v3.py`, `map_players_name.py` | Source scripts |
 | `img/`, `css/` | Committed assets for PDF/HTML reports |
 | `json/` | Player ID mapping (`player_id_map.json` bootstrap snapshot, `player_id_mapped.json` sanitized names) — refresh with `python map_players_name.py --fetch` |
-| `csv/` | **Generated** — season data from the fetcher (e.g. `fpl_season_data.csv`); gitignored |
+| `csv/` | **Generated** — `fpl_season_data.csv` + `fpl_season_picks.csv` from the fetcher; gitignored |
 | `fpl_output/` | **Generated** — PDF/HTML reports and charts; gitignored |
 | `.env` | **Local only** — API cookie and league id; gitignored |
 | `tests/`, `tests/fixtures/` | Pytest suite and sample CSV/JSON (no network) |
