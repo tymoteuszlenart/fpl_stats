@@ -34,7 +34,7 @@ CHIP_CHART_LABELS = {
 COMBINED_HALF_CHART_SPECS = (
     ("Bench Boost", BENCH_BOOST_CHIPS, "bench", "max"),
     ("Free Hit", FREE_HIT_CHIPS, "points", "max"),
-    ("Triple Captain", TRIPLE_CAPTAIN_CHIPS, "captain_points", "max_triple"),
+    ("Triple Captain", TRIPLE_CAPTAIN_CHIPS, "captain_contribution_points", "max"),
 )
 
 
@@ -65,6 +65,27 @@ def normalize_chips_dataframe(df):
 
 def is_bench_boost_chip(chip):
     return chip in BENCH_BOOST_CHIPS
+
+
+def captain_contribution_multiplier(chip):
+    """FPL captain bonus: 2× normally, 3× on Triple Captain chip."""
+    if chip in TRIPLE_CAPTAIN_CHIPS or chip == "3xc":
+        return 3
+    return 2
+
+
+def ensure_captain_columns(df):
+    """Backfill captain_raw_points / captain_contribution_points from legacy CSV columns."""
+    out = df.copy()
+    if "captain_raw_points" not in out.columns:
+        if "captain_points" not in out.columns:
+            raise ValueError("CSV missing captain_points or captain_raw_points column")
+        out["captain_raw_points"] = out["captain_points"]
+    if "captain_contribution_points" not in out.columns:
+        out["captain_contribution_points"] = out["captain_raw_points"] * out["chip"].map(
+            captain_contribution_multiplier
+        )
+    return out
 
 
 SEASON_CHIP_SLOTS = frozenset(HALF_CHIP_ORDER)

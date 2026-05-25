@@ -52,6 +52,8 @@ def test_captain_played_uses_captain_points(mock_get):
     ]
     row = get_manager_data(999, 1)
     assert row["captain_id"] == captain_id
+    assert row["captain_raw_points"] == 10
+    assert row["captain_contribution_points"] == 20
     assert row["captain_points"] == 10
 
 
@@ -64,7 +66,26 @@ def test_captain_dnp_uses_vice_captain(mock_get):
     ]
     row = get_manager_data(999, 1)
     assert row["captain_id"] == vice_id
+    assert row["captain_raw_points"] == 8
+    assert row["captain_contribution_points"] == 16
     assert row["captain_points"] == 8
+
+
+@patch("fetch_fpl_league_data.fpl_get")
+def test_triple_captain_applies_3x_contribution(mock_get):
+    captain_id, vice_id = 1, 2
+    mock_get.side_effect = [
+        _picks_payload(
+            captain_id=captain_id,
+            vice_id=vice_id,
+            captain_multiplier=2,
+            chip="3xc",
+        ),
+        _live_payload({1: 12, 2: 6, 3: 4, 4: 2, 5: 1, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0}),
+    ]
+    row = get_manager_data(999, 1)
+    assert row["captain_raw_points"] == 12
+    assert row["captain_contribution_points"] == 36
 
 
 @patch("fetch_fpl_league_data.fpl_get")
