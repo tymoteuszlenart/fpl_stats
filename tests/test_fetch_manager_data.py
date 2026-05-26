@@ -14,13 +14,15 @@ def _picks_payload(*, captain_id, vice_id, captain_multiplier, chip=None, bench_
             mult = captain_multiplier if element == captain_id else 1
         else:
             mult = 0
-        picks.append({
-            "element": element,
-            "position": pos,
-            "multiplier": mult,
-            "is_captain": element == captain_id,
-            "is_vice_captain": element == vice_id,
-        })
+        picks.append(
+            {
+                "element": element,
+                "position": pos,
+                "multiplier": mult,
+                "is_captain": element == captain_id,
+                "is_vice_captain": element == vice_id,
+            }
+        )
     return {
         "picks": picks,
         "entry_history": {
@@ -37,8 +39,7 @@ def _picks_payload(*, captain_id, vice_id, captain_multiplier, chip=None, bench_
 def _live_payload(player_points):
     return {
         "elements": [
-            {"id": pid, "stats": {"total_points": pts}}
-            for pid, pts in player_points.items()
+            {"id": pid, "stats": {"total_points": pts}} for pid, pts in player_points.items()
         ]
     }
 
@@ -98,10 +99,25 @@ def test_bench_boost_sums_bench_players_not_points_on_bench(mock_get):
             captain_multiplier=2,
             chip="bboost",
         ),
-        _live_payload({
-            1: 5, 2: 4, 3: 3, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1,
-            201: 6, 202: 4, 203: 2, 204: 1,
-        }),
+        _live_payload(
+            {
+                1: 5,
+                2: 4,
+                3: 3,
+                4: 2,
+                5: 1,
+                6: 1,
+                7: 1,
+                8: 1,
+                9: 1,
+                10: 1,
+                11: 1,
+                201: 6,
+                202: 4,
+                203: 2,
+                204: 1,
+            }
+        ),
     ]
     row = get_manager_data(999, 1)
     assert row["bench"] == 13
@@ -128,10 +144,25 @@ def test_null_entry_history_still_returns_chip_key(mock_get):
     payload["entry_history"] = None
     mock_get.side_effect = [
         payload,
-        _live_payload({
-            1: 5, 2: 4, 3: 3, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1,
-            201: 1, 202: 1, 203: 1, 204: 1,
-        }),
+        _live_payload(
+            {
+                1: 5,
+                2: 4,
+                3: 3,
+                4: 2,
+                5: 1,
+                6: 1,
+                7: 1,
+                8: 1,
+                9: 1,
+                10: 1,
+                11: 1,
+                201: 1,
+                202: 1,
+                203: 1,
+                204: 1,
+            }
+        ),
     ]
     row = get_manager_data(999, 38)
     assert "chip" in row

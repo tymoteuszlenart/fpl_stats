@@ -45,5 +45,5 @@ def test_most_picked_award_unknown_player_id(season_csv, tmp_path):
     df, id_to_name = load_data(season_csv, str(unknown_map))
     agg, _ = build_aggregates(df)
     awards, _ = build_awards(df, agg, id_to_name)
-    picked = next(a for a in awards if a["Nagroda"] == "Bez niego ani rusz")
+    picked = next(a for a in awards if a["Nagroda"] == "Pierdolę, każdy gra tego Haalanda")
     assert picked["Drużyna"].startswith("Gracz #")

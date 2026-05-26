@@ -50,18 +50,10 @@ _AWARD_ICON_CHART = "📊"
 
 def build_awards_html(awards, season):
     """Build awards ceremony HTML using only local asset paths (css/, img/)."""
-    trophy = (
-        f'<span class="emoji-icon" role="img" aria-label="trofeum">{_AWARD_ICON_TROPHY}</span>'
-    )
-    shirt = (
-        f'<span class="emoji-icon" role="img" aria-label="koszulka">{_AWARD_ICON_SHIRT}</span>'
-    )
-    target = (
-        f'<span class="emoji-icon" role="img" aria-label="cel">{_AWARD_ICON_TARGET}</span>'
-    )
-    chart = (
-        f'<span class="emoji-icon" role="img" aria-label="wykres">{_AWARD_ICON_CHART}</span>'
-    )
+    trophy = f'<span class="emoji-icon" role="img" aria-label="trofeum">{_AWARD_ICON_TROPHY}</span>'
+    shirt = f'<span class="emoji-icon" role="img" aria-label="koszulka">{_AWARD_ICON_SHIRT}</span>'
+    target = f'<span class="emoji-icon" role="img" aria-label="cel">{_AWARD_ICON_TARGET}</span>'
+    chart = f'<span class="emoji-icon" role="img" aria-label="wykres">{_AWARD_ICON_CHART}</span>'
 
     html = f"""
     <!DOCTYPE html>
@@ -85,19 +77,19 @@ def build_awards_html(awards, season):
         <div class="award">
             <div class="title">
                 {trophy}
-                {award['Nagroda']}
+                {award["Nagroda"]}
             </div>
             <div class="label">
                 {shirt}
-                <strong>Drużyna:</strong> {award['Drużyna']}
+                <strong>Drużyna:</strong> {award["Drużyna"]}
             </div>
             <div class="label">
                 {target}
-                <strong>Za co:</strong> {award['Za co']}
+                <strong>Za co:</strong> {award["Za co"]}
             </div>
             <div class="label">
                 {chart}
-                <strong>Wartość:</strong> {award['Wartość']}
+                <strong>Wartość:</strong> {award["Wartość"]}
             </div>
             <img class="seal" src="img/seal.png" alt="">
             <div class="signature">
@@ -181,7 +173,9 @@ def _plot_combined_chip_halves(pdf, df, title_prefix, chip_set, value_col, mode)
     plt.close()
 
 
-def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season=None, write_output=True):
+def generate_pdfs(
+    df, agg, awards, top_captains, output_dir="fpl_output", season=None, write_output=True
+):
     """Generate PDF/HTML reports. Set write_output=False to skip file I/O (e.g. tests)."""
     if season is None:
         season = default_season_label()
@@ -197,7 +191,7 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
     print("🔄 Tworzenie raportu w PDF...")
     with PdfPages(summary_pdf) as pdf:
         sns.set(style="whitegrid")
-        plt.rcParams.update({'axes.titlesize': 16})
+        plt.rcParams.update({"axes.titlesize": 16})
 
         for col, title, palette in [
             ("captain_contribution_points", "Punkty kapitanów (2×/3×) I", "flare"),
@@ -214,15 +208,25 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
                 bench_points = filtered_df.groupby("entry_name")["bench"].sum().reset_index()
                 d = bench_points.sort_values("bench", ascending=False)
             elif col == "avg_bench_points":
-                d = df.groupby("entry_name")["bench"].mean().reset_index().rename(columns={"bench": "avg_bench_points"}).sort_values("avg_bench_points", ascending=False)
+                d = (
+                    df.groupby("entry_name")["bench"]
+                    .mean()
+                    .reset_index()
+                    .rename(columns={"bench": "avg_bench_points"})
+                    .sort_values("avg_bench_points", ascending=False)
+                )
             else:
                 d = agg.sort_values(col, ascending=False)
 
             plt.figure(figsize=(10, 6))
-            ax = sns.barplot(data=d, x=col, y="entry_name", hue="entry_name", legend=False, palette=palette)
+            ax = sns.barplot(
+                data=d, x=col, y="entry_name", hue="entry_name", legend=False, palette=palette
+            )
             for i, v in enumerate(d[col]):
                 if not pd.isna(v):
-                    ax.text(v + 0.5, i, f"{int(v) if title.endswith(' I') else f'{v:.1f}'}", va='center')
+                    ax.text(
+                        v + 0.5, i, f"{int(v) if title.endswith(' I') else f'{v:.1f}'}", va="center"
+                    )
             plt.title(title.replace(" I", ""))
             plt.tight_layout()
             pdf.savefig()
@@ -234,7 +238,14 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
                 continue
             d = _aggregate_chip_chart(chip_df, chip)
             plt.figure(figsize=(10, 6))
-            ax = sns.barplot(data=d, x="points", y="entry_name", hue="entry_name", legend=False, palette="cubehelix")
+            ax = sns.barplot(
+                data=d,
+                x="points",
+                y="entry_name",
+                hue="entry_name",
+                legend=False,
+                palette="cubehelix",
+            )
             for i, v in enumerate(d["points"]):
                 if not pd.isna(v):
                     ax.text(v + 0.5, i, f"{int(v)}", va="center")
@@ -269,10 +280,12 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
 
         fig, ax = plt.subplots(figsize=(6, 12))
         ax.axis("off")
-        table = ax.table(cellText=top_captains[["desc"]].values,
-                         colLabels=["TOP 30 wyborów kapitańskich"],
-                         loc="center",
-                         cellLoc="center")
+        table = ax.table(
+            cellText=top_captains[["desc"]].values,
+            colLabels=["TOP 30 wyborów kapitańskich"],
+            loc="center",
+            cellLoc="center",
+        )
         table.auto_set_font_size(False)
         table.set_fontsize(12)
         table.scale(1.2, 2)
@@ -282,11 +295,31 @@ def generate_pdfs(df, agg, awards, top_captains, output_dir="fpl_output", season
     print(f"✅ Zapisano: {summary_pdf}")
 
 
-def run_report(csv_path="csv/fpl_season_data.csv", mapping_path="json/player_id_mapped.json",
-               output_dir="fpl_output", season=None, write_output=True):
+def run_report(
+    csv_path="csv/fpl_season_data.csv",
+    mapping_path="json/player_id_mapped.json",
+    bootstrap_path="json/player_id_map.json",
+    output_dir="fpl_output",
+    season=None,
+    write_output=True,
+):
     """Full pipeline: load data, aggregates, awards, optional PDF generation."""
     df, id_to_name = load_data(csv_path, mapping_path)
     agg, _num_gw = build_aggregates(df)
-    awards, top_captains = build_awards(df, agg, id_to_name)
-    generate_pdfs(df, agg, awards, top_captains, output_dir=output_dir, season=season, write_output=write_output)
-    return {"df": df, "agg": agg, "awards": awards, "top_captains": top_captains, "id_to_name": id_to_name}
+    awards, top_captains = build_awards(df, agg, id_to_name, bootstrap_path=bootstrap_path)
+    generate_pdfs(
+        df,
+        agg,
+        awards,
+        top_captains,
+        output_dir=output_dir,
+        season=season,
+        write_output=write_output,
+    )
+    return {
+        "df": df,
+        "agg": agg,
+        "awards": awards,
+        "top_captains": top_captains,
+        "id_to_name": id_to_name,
+    }

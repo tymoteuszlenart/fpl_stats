@@ -18,15 +18,91 @@ REQUEST_TIMEOUT = 30
 def sanitize_web_name(input_str):
     """Normalize FPL web_name to ASCII-friendly display text."""
     replacements = {
-        "Ø": "O", "ø": "o", "Å": "A", "å": "a", "Æ": "Ae", "æ": "ae", "ß": "ss", "Ç": "C", "ç": "c",
-        "Ñ": "N", "ñ": "n", "Ü": "U", "ü": "u", "Ö": "O", "ö": "o", "É": "E", "é": "e", "È": "E", "è": "e",
-        "Á": "A", "á": "a", "Í": "I", "í": "i", "Ó": "O", "ó": "o", "Ú": "U", "ú": "u", "Ý": "Y", "ý": "y",
-        "Ž": "Z", "ž": "z", "Š": "S", "š": "s", "Č": "C", "č": "c", "Ł": "L", "ł": "l", "Đ": "D", "đ": "d",
-        "Ć": "C", "ć": "c", "Ę": "E", "ę": "e", "Ą": "A", "ą": "a", "Ś": "S", "ś": "s", "Ź": "Z", "ź": "z",
-        "Ż": "Z", "ż": "z", "Ń": "N", "ń": "n", "Ů": "U", "ů": "u", "Ř": "R", "ř": "r", "Ť": "T", "ť": "t",
-        "Ň": "N", "ň": "n", "Ě": "E", "ě": "e", "Ĺ": "L", "ĺ": "l", "Ľ": "L", "ľ": "l", "Ď": "D", "ď": "d",
-        "Ť": "T", "ť": "t", "Ň": "N", "ň": "n", "Ŕ": "R", "ŕ": "r", "Ÿ": "Y", "ÿ": "y", "Õ": "O", "õ": "o",
-        "Ã": "A", "ã": "a", "Œ": "Oe", "œ": "oe", "ğ": "g", "ı": "i",
+        "Ø": "O",
+        "ø": "o",
+        "Å": "A",
+        "å": "a",
+        "Æ": "Ae",
+        "æ": "ae",
+        "ß": "ss",
+        "Ç": "C",
+        "ç": "c",
+        "Ñ": "N",
+        "ñ": "n",
+        "Ü": "U",
+        "ü": "u",
+        "Ö": "O",
+        "ö": "o",
+        "É": "E",
+        "é": "e",
+        "È": "E",
+        "è": "e",
+        "Á": "A",
+        "á": "a",
+        "Í": "I",
+        "í": "i",
+        "Ó": "O",
+        "ó": "o",
+        "Ú": "U",
+        "ú": "u",
+        "Ý": "Y",
+        "ý": "y",
+        "Ž": "Z",
+        "ž": "z",
+        "Š": "S",
+        "š": "s",
+        "Č": "C",
+        "č": "c",
+        "Ł": "L",
+        "ł": "l",
+        "Đ": "D",
+        "đ": "d",
+        "Ć": "C",
+        "ć": "c",
+        "Ę": "E",
+        "ę": "e",
+        "Ą": "A",
+        "ą": "a",
+        "Ś": "S",
+        "ś": "s",
+        "Ź": "Z",
+        "ź": "z",
+        "Ż": "Z",
+        "ż": "z",
+        "Ń": "N",
+        "ń": "n",
+        "Ů": "U",
+        "ů": "u",
+        "Ř": "R",
+        "ř": "r",
+        "Ť": "T",
+        "ť": "t",
+        "Ň": "N",
+        "ň": "n",
+        "Ě": "E",
+        "ě": "e",
+        "Ĺ": "L",
+        "ĺ": "l",
+        "Ľ": "L",
+        "ľ": "l",
+        "Ď": "D",
+        "ď": "d",
+        "Ť": "T",
+        "ť": "t",
+        "Ň": "N",
+        "ň": "n",
+        "Ŕ": "R",
+        "ŕ": "r",
+        "Ÿ": "Y",
+        "ÿ": "y",
+        "Õ": "O",
+        "õ": "o",
+        "Ã": "A",
+        "ã": "a",
+        "Œ": "Oe",
+        "œ": "oe",
+        "ğ": "g",
+        "ı": "i",
     }
     for src, target in replacements.items():
         input_str = input_str.replace(src, target)
@@ -41,10 +117,12 @@ def build_mapped_players(elements):
     for element in elements:
         if "id" not in element or "web_name" not in element:
             continue
-        mapped.append({
-            "id": element["id"],
-            "name": sanitize_web_name(element["web_name"]),
-        })
+        mapped.append(
+            {
+                "id": element["id"],
+                "name": sanitize_web_name(element["web_name"]),
+            }
+        )
     return mapped
 
 
@@ -110,9 +188,7 @@ def refresh_from_local_map(map_path=DEFAULT_MAP_PATH, mapped_path=DEFAULT_MAPPED
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Refresh FPL player ID → name mapping files."
-    )
+    parser = argparse.ArgumentParser(description="Refresh FPL player ID → name mapping files.")
     parser.add_argument(
         "--fetch",
         action="store_true",
@@ -148,10 +224,7 @@ def main(argv=None):
                 map_path=args.map_path,
                 mapped_path=args.mapped_path,
             )
-            print(
-                f"Regenerated {len(mapped)} players from {args.map_path} "
-                f"→ {args.mapped_path}"
-            )
+            print(f"Regenerated {len(mapped)} players from {args.map_path} → {args.mapped_path}")
     except (OSError, ValueError, requests.RequestException) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

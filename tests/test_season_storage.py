@@ -49,12 +49,14 @@ def test_legacy_team_column_still_loads(tmp_path):
 
 
 def test_write_round_trip(tmp_path):
-    rows = [{
-        "gw": 1,
-        "points": 50,
-        "entry_name": "A",
-        "team": [{"player_id": 10, "multiplier": 2, "points": 6}],
-    }]
+    rows = [
+        {
+            "gw": 1,
+            "points": 50,
+            "entry_name": "A",
+            "team": [{"player_id": 10, "multiplier": 2, "points": 6}],
+        }
+    ]
     season_path = tmp_path / "fpl_season_data.csv"
     picks_path = write_season_csv_and_picks(rows, str(season_path))
     assert picks_path == str(tmp_path / "fpl_season_picks.csv")
@@ -65,14 +67,18 @@ def test_write_round_trip(tmp_path):
 
 
 def test_team_rows_from_dataframe():
-    df = pd.DataFrame([{
-        "entry_name": "X",
-        "gw": 2,
-        "team": [
-            {"player_id": 1, "multiplier": 2, "points": 6},
-            {"player_id": 2, "multiplier": 0, "points": 0},
-        ],
-    }])
+    df = pd.DataFrame(
+        [
+            {
+                "entry_name": "X",
+                "gw": 2,
+                "team": [
+                    {"player_id": 1, "multiplier": 2, "points": 6},
+                    {"player_id": 2, "multiplier": 0, "points": 0},
+                ],
+            }
+        ]
+    )
     picks = team_rows_from_dataframe(df)
     assert len(picks) == 2
     assert set(picks.columns) == {"entry_name", "gw", "player_id", "multiplier", "points"}

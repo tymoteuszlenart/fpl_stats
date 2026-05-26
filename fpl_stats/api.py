@@ -68,18 +68,12 @@ def fpl_get(url, *, context="", retries=MAX_RETRIES, backoff=INITIAL_BACKOFF):
 
     for attempt in range(retries):
         try:
-            response = requests.get(
-                url, headers=HEADERS, timeout=REQUEST_TIMEOUT
-            )
+            response = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
         except requests.Timeout as exc:
-            last_error = FplApiError(
-                f"{prefix}Request timed out after {REQUEST_TIMEOUT}s: {url}"
-            )
+            last_error = FplApiError(f"{prefix}Request timed out after {REQUEST_TIMEOUT}s: {url}")
             last_error.__cause__ = exc
         except requests.RequestException as exc:
-            last_error = FplApiError(
-                f"{prefix}Network error for {url}: {exc}"
-            )
+            last_error = FplApiError(f"{prefix}Network error for {url}: {exc}")
             last_error.__cause__ = exc
         else:
             status = response.status_code
@@ -101,16 +95,12 @@ def fpl_get(url, *, context="", retries=MAX_RETRIES, backoff=INITIAL_BACKOFF):
                 except json.JSONDecodeError as exc:
                     snippet = response.text[:200].strip()
                     raise FplResponseError(
-                        f"{prefix}Invalid JSON from {url}: {exc}. "
-                        f"Body starts with: {snippet!r}"
+                        f"{prefix}Invalid JSON from {url}: {exc}. Body starts with: {snippet!r}"
                     ) from exc
 
         if attempt < retries - 1:
             delay = backoff * (2**attempt)
-            print(
-                f"{prefix}Retry {attempt + 1}/{retries - 1} in {delay:.1f}s "
-                f"({last_error})"
-            )
+            print(f"{prefix}Retry {attempt + 1}/{retries - 1} in {delay:.1f}s ({last_error})")
             time.sleep(delay)
 
     raise last_error
@@ -142,7 +132,6 @@ def get_league_entries(league_id):
             page += 1
         except (KeyError, TypeError) as exc:
             raise FplResponseError(
-                f"League {league_id} standings page {page}: "
-                f"unexpected response shape ({exc})"
+                f"League {league_id} standings page {page}: unexpected response shape ({exc})"
             ) from exc
     return entries

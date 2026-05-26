@@ -30,7 +30,9 @@ def _parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Generate FPL league season PDF/HTML reports.")
     parser.add_argument("--csv", default="csv/fpl_season_data.csv", help="Input season CSV path")
     parser.add_argument("--output-dir", default="fpl_output", help="Directory for PDF/HTML output")
-    parser.add_argument("--season", default=None, help="Season label (default: current football season)")
+    parser.add_argument(
+        "--season", default=None, help="Season label (default: current football season)"
+    )
     parser.add_argument(
         "--no-write",
         action="store_true",

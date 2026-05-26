@@ -1,0 +1,20 @@
+# Dependencies and build artifacts
+node_modules/
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Generated / local data (gitignored)
+csv/
+fpl_output/
+test/
+*.csv
+*.pdf
+*.html
+
+# Python — use a Python formatter (e.g. Ruff, Black), not Prettier
+**/*.py
+
+# Large or machine-maintained JSON snapshots (optional; uncomment to skip)
+# json/player_id_map.json

@@ -75,13 +75,13 @@ Use this file for **every** Cloud Agent run on this repo. Each run should implem
 
 ## Issue dependency hints
 
-| Issue area | Notes |
-|------------|--------|
-| #9 Tests/fixtures | Foundation for #8, #11, chip logic tests |
-| #13 Pin deps | Do before or with #15 CI |
-| #15 CI | Should run `pytest` without live API once #9 exists |
-| #10 Player mapping | May need bootstrap fetch script; keep optional/offline path |
-| #14 PDF assets | WeasyPrint/CSS; avoid hard dependency on external URLs in CI |
+| Issue area         | Notes                                                        |
+| ------------------ | ------------------------------------------------------------ |
+| #9 Tests/fixtures  | Foundation for #8, #11, chip logic tests                     |
+| #13 Pin deps       | Do before or with #15 CI                                     |
+| #15 CI             | Should run `pytest` without live API once #9 exists          |
+| #10 Player mapping | May need bootstrap fetch script; keep optional/offline path  |
+| #14 PDF assets     | WeasyPrint/CSS; avoid hard dependency on external URLs in CI |
 
 Independent issues (e.g. #11 label fix, #6 README env name) can ship in parallel.
 

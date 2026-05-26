@@ -94,13 +94,15 @@ def team_rows_from_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         entry_name = row.entry_name
         gw = int(row.gw)
         for pick in team:
-            records.append({
-                "entry_name": entry_name,
-                "gw": gw,
-                "player_id": pick["player_id"],
-                "multiplier": pick["multiplier"],
-                "points": pick["points"],
-            })
+            records.append(
+                {
+                    "entry_name": entry_name,
+                    "gw": gw,
+                    "player_id": pick["player_id"],
+                    "multiplier": pick["multiplier"],
+                    "points": pick["points"],
+                }
+            )
     return pd.DataFrame(records, columns=list(PICK_COLUMNS))
 
 
@@ -117,9 +119,8 @@ def attach_team_from_picks(df: pd.DataFrame, picks: pd.DataFrame) -> pd.Series:
             for r in group.itertuples(index=False)
         ]
 
-    grouped = (
-        picks.groupby(["entry_name", "gw"], sort=False)
-        .apply(_group_to_team, include_groups=False)
+    grouped = picks.groupby(["entry_name", "gw"], sort=False).apply(
+        _group_to_team, include_groups=False
     )
     keys = list(zip(df["entry_name"], df["gw"]))
     return pd.Series([grouped.get(key) for key in keys], index=df.index, dtype=object)

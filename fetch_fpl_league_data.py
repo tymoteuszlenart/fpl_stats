@@ -64,9 +64,7 @@ def resolve_gameweeks(events, *, fetch_mode="finished", max_gw=None):
       full     — all gameweeks in bootstrap (typically 38)
     """
     if fetch_mode not in FETCH_MODES:
-        raise ValueError(
-            f"fetch_mode must be one of {FETCH_MODES!r}, got {fetch_mode!r}"
-        )
+        raise ValueError(f"fetch_mode must be one of {FETCH_MODES!r}, got {fetch_mode!r}")
 
     all_ids = sorted(e["id"] for e in events)
     if not all_ids:
@@ -88,9 +86,7 @@ def resolve_gameweeks(events, *, fetch_mode="finished", max_gw=None):
 
 
 def parse_fetch_args(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Download FPL classic league data to CSV."
-    )
+    parser = argparse.ArgumentParser(description="Download FPL classic league data to CSV.")
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
         "--finished-only",
@@ -131,9 +127,7 @@ def parse_fetch_args(argv=None):
     if args.fetch_mode is None:
         if env_mode:
             if env_mode not in FETCH_MODES:
-                parser.error(
-                    f"FPL_FETCH_MODE must be one of {', '.join(FETCH_MODES)}"
-                )
+                parser.error(f"FPL_FETCH_MODE must be one of {', '.join(FETCH_MODES)}")
             args.fetch_mode = env_mode
         else:
             args.fetch_mode = "finished"
@@ -171,9 +165,7 @@ def main(argv=None):
 
     events_by_id = _event_by_id(events)
     try:
-        gameweeks = resolve_gameweeks(
-            events, fetch_mode=args.fetch_mode, max_gw=args.max_gw
-        )
+        gameweeks = resolve_gameweeks(events, fetch_mode=args.fetch_mode, max_gw=args.max_gw)
     except ValueError as exc:
         print(f"Fatal: {exc}")
         raise SystemExit(2) from exc

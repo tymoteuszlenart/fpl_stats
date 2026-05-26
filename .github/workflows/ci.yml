@@ -24,6 +24,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
 
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Prettier
+        run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check
+
       - name: Syntax check (py_compile)
         run: |
           python -m py_compile \

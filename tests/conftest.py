@@ -18,3 +18,8 @@ def season_csv(fixtures_dir):
 @pytest.fixture
 def mapping_json(fixtures_dir):
     return str(fixtures_dir / "player_id_mapped.json")
+
+
+@pytest.fixture
+def bootstrap_map_json(fixtures_dir):
+    return str(fixtures_dir / "player_id_map_minimal.json")

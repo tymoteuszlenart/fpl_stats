@@ -23,56 +23,64 @@ def uneven_gw_and_bboost_fixture():
     """
     rows = []
     for gw in range(1, 4):
-        rows.append({
-            "entry_name": "Alpha",
-            "gw": gw,
-            "points": 30,
-            "bench": 2,
-            "hits": 0,
-            "captain_points": 0,
-            "transfer_gain": 0,
-            "autosub_count": 0,
-            "event_transfers": 0,
-            "chip": "",
-        })
+        rows.append(
+            {
+                "entry_name": "Alpha",
+                "gw": gw,
+                "points": 30,
+                "bench": 2,
+                "hits": 0,
+                "captain_points": 0,
+                "transfer_gain": 0,
+                "autosub_count": 0,
+                "event_transfers": 0,
+                "chip": "",
+            }
+        )
     for gw in range(1, 6):
-        rows.append({
-            "entry_name": "Beta",
-            "gw": gw,
-            "points": 10,
-            "bench": 100,
+        rows.append(
+            {
+                "entry_name": "Beta",
+                "gw": gw,
+                "points": 10,
+                "bench": 100,
+                "hits": 0,
+                "captain_points": 0,
+                "transfer_gain": 0,
+                "autosub_count": 0,
+                "event_transfers": 0,
+                "chip": "",
+            }
+        )
+    for gw in range(1, 3):
+        rows.append(
+            {
+                "entry_name": "Gamma",
+                "gw": gw,
+                "points": 50,
+                "bench": 999,
+                "hits": 0,
+                "captain_points": 0,
+                "transfer_gain": 0,
+                "autosub_count": 0,
+                "event_transfers": 0,
+                "chip": "bboost",
+            }
+        )
+    rows.append(
+        {
+            "entry_name": "Delta",
+            "gw": 1,
+            "points": 20,
+            "bench": 7,
             "hits": 0,
             "captain_points": 0,
             "transfer_gain": 0,
             "autosub_count": 0,
             "event_transfers": 0,
             "chip": "",
-        })
-    for gw in range(1, 3):
-        rows.append({
-            "entry_name": "Gamma",
-            "gw": gw,
-            "points": 50,
-            "bench": 999,
-            "hits": 0,
-            "captain_points": 0,
-            "transfer_gain": 0,
-            "autosub_count": 0,
-            "event_transfers": 0,
-            "chip": "bboost",
-        })
-    rows.append({
-        "entry_name": "Delta",
-        "gw": 1,
-        "points": 20,
-        "bench": 7,
-        "hits": 0,
-        "captain_points": 0,
-        "transfer_gain": 0,
-        "autosub_count": 0,
-        "event_transfers": 0,
-        "chip": "",
-    })
+        }
+    )
     return _minimal_season_df(rows)
 
 

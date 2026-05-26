@@ -1,0 +1,16 @@
+{
+  "name": "fpl_stats",
+  "private": true,
+  "description": "Dev tooling for fpl_stats (formatting)",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:python": "ruff format .",
+    "format:python:check": "ruff format --check .",
+    "format:all": "npm run format && npm run format:python",
+    "format:check:all": "npm run format:check && npm run format:python:check"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}

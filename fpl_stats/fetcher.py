@@ -20,9 +20,7 @@ def normalize_wildcard_chip(chip, gw):
 
 
 def get_manager_data(entry_id, gw):
-    picks_url = (
-        f"https://fantasy.premierleague.com/api/entry/{entry_id}/event/{gw}/picks/"
-    )
+    picks_url = f"https://fantasy.premierleague.com/api/entry/{entry_id}/event/{gw}/picks/"
     live_url = f"https://fantasy.premierleague.com/api/event/{gw}/live/"
     ctx = f"Entry {entry_id} GW{gw}"
 
@@ -34,25 +32,14 @@ def get_manager_data(entry_id, gw):
         raise FplResponseError(f"{ctx}: picks response has no 'picks' data")
 
     try:
-        live_points = {
-            e["id"]: e["stats"]["total_points"] for e in live["elements"]
-        }
+        live_points = {e["id"]: e["stats"]["total_points"] for e in live["elements"]}
     except (KeyError, TypeError) as exc:
-        raise FplResponseError(
-            f"{ctx}: unexpected live event response shape ({exc})"
-        ) from exc
+        raise FplResponseError(f"{ctx}: unexpected live event response shape ({exc})") from exc
 
-    team = [
-        {"player_id": p["element"], "multiplier": p["multiplier"]}
-        for p in picks_data
-    ]
+    team = [{"player_id": p["element"], "multiplier": p["multiplier"]} for p in picks_data]
 
-    captain_id = next(
-        (pd["element"] for pd in picks_data if pd.get("is_captain")), None
-    )
-    vice_captain_id = next(
-        (pd["element"] for pd in picks_data if pd.get("is_vice_captain")), None
-    )
+    captain_id = next((pd["element"] for pd in picks_data if pd.get("is_captain")), None)
+    vice_captain_id = next((pd["element"] for pd in picks_data if pd.get("is_vice_captain")), None)
 
     team_with_points = [
         {
@@ -64,8 +51,7 @@ def get_manager_data(entry_id, gw):
     ]
 
     captain_played = any(
-        p["player_id"] == captain_id and p["multiplier"] > 1
-        for p in team_with_points
+        p["player_id"] == captain_id and p["multiplier"] > 1 for p in team_with_points
     )
     if captain_played:
         captain_raw_points = live_points.get(captain_id, 0)
@@ -169,10 +155,12 @@ def fetch_entry_gameweeks(
             )
             continue
 
-        data.update({
-            "player_name": player_name,
-            "entry_name": entry_name,
-        })
+        data.update(
+            {
+                "player_name": player_name,
+                "entry_name": entry_name,
+            }
+        )
         gw_num = data.get("gw", gw)
         data["chip"] = normalize_chip_activation(data.get("chip"), gw_num)
         rows.append(data)

@@ -1,126 +1,128 @@
 @page {
-    size: A4;
-    margin: 0;
+  size: A4;
+  margin: 0;
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
 }
 
 body {
-    font-family: 'Georgia', serif;
-    background: #fdfcf9;
+  font-family: "Georgia", serif;
+  background: #fdfcf9;
 }
 
-.award, .cover {
-    box-sizing: border-box;
-    width: 210mm;
-    height: 297mm;
-    padding: 60px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 20px solid #d4af37;
-    background-image: url("../img/background.png");
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    page-break-after: always;
-    position: relative;
+.award,
+.cover {
+  box-sizing: border-box;
+  width: 210mm;
+  height: 297mm;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 20px solid #d4af37;
+  background-image: url("../img/background.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  page-break-after: always;
+  position: relative;
 }
 
 .title {
-    font-size: 38px;
-    font-weight: bold;
-    color: #c59d00;
-    margin-bottom: 40px;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+  font-size: 38px;
+  font-weight: bold;
+  color: #c59d00;
+  margin-bottom: 40px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .label {
-    font-size: 24px;
-    margin: 15px 0;
-    text-align: center;
-    line-height: 1.6;
+  font-size: 24px;
+  margin: 15px 0;
+  text-align: center;
+  line-height: 1.6;
 }
 
 .emoji-icon {
-    font-size: 48px;
-    line-height: 1;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 12px;
+  font-size: 48px;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 12px;
 }
 
 .footer {
-    position: absolute;
-    bottom: 40px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 18px;
-    color: #666;
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 18px;
+  color: #666;
 }
 
 .seal {
-    position: absolute;
-    bottom: 60px;
-    right: 60px;
-    width: 240px;
-    opacity: 0.8;
+  position: absolute;
+  bottom: 60px;
+  right: 60px;
+  width: 240px;
+  opacity: 0.8;
 }
 
 .signature {
-    position: absolute;
-    bottom: 80px;
-    left: 60px;
-    font-size: 16px;
-    color: #444;
-    font-style: italic;
-    text-align: left;
-    line-height: 1.4;
+  position: absolute;
+  bottom: 80px;
+  left: 60px;
+  font-size: 16px;
+  color: #444;
+  font-style: italic;
+  text-align: left;
+  line-height: 1.4;
 }
 
 .sig-line {
-    font-style: normal;
-    color: #999;
-    margin-bottom: 6px;
+  font-style: normal;
+  color: #999;
+  margin-bottom: 6px;
 }
 
 .sig-title {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .sig-sub {
-    font-size: 14px;
+  font-size: 14px;
 }
 
 .sig-org {
-    font-size: 13px;
-    color: #777;
+  font-size: 13px;
+  color: #777;
 }
 
 .cover h1 {
-    font-size: 48px;
-    color: #c59d00;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 20px;
+  font-size: 48px;
+  color: #c59d00;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
 }
 
 .cover h2 {
-    font-size: 28px;
-    color: #444;
-    margin-bottom: 60px;
+  font-size: 28px;
+  color: #444;
+  margin-bottom: 60px;
 }
 
 .cover .season {
-    font-size: 20px;
-    color: #666;
+  font-size: 20px;
+  color: #666;
 }

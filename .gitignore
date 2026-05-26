@@ -9,6 +9,9 @@ __pycache__/
 # Virtual environment
 venv/
 
+# Node (Prettier)
+node_modules/
+
 # Generated data and reports (do not commit)
 csv/
 fpl_output/

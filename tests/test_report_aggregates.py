@@ -30,18 +30,20 @@ def test_build_aggregates_order_independent():
     """Row order in CSV must not mis-attach groupby means via positional .values."""
     rows = []
     for entry_name, pts in [("Charlie", 40), ("Alice", 50), ("Bob", 60)]:
-        rows.append({
-            "gw": 1,
-            "entry_name": entry_name,
-            "points": pts,
-            "bench": 1,
-            "hits": 0,
-            "captain_points": 0,
-            "transfer_gain": 0,
-            "autosub_count": 0,
-            "event_transfers": 0,
-            "chip": None,
-        })
+        rows.append(
+            {
+                "gw": 1,
+                "entry_name": entry_name,
+                "points": pts,
+                "bench": 1,
+                "hits": 0,
+                "captain_points": 0,
+                "transfer_gain": 0,
+                "autosub_count": 0,
+                "event_transfers": 0,
+                "chip": None,
+            }
+        )
     df = pd.DataFrame(rows)
     agg, _ = build_aggregates(df)
     by_name = agg.set_index("entry_name")
